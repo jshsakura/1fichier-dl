@@ -234,7 +234,7 @@ class Gui:
     def __init__(self):
         # Init GuiBehavior()
         self.actions = GuiBehavior(self)
-        self.app_name = '1Fichier Downloader v0.1.5'
+        self.app_name = '1Fichier Downloader v0.1.6'
 
         # Create App
         app = QApplication(sys.argv) 
@@ -465,7 +465,7 @@ class Gui:
 
         github_btn = QPushButton(QIcon(absp('res/github.svg')), '')
         github_btn.setFixedWidth(32)
-        github_btn.clicked.connect(lambda: webbrowser.open('https://github.com/manuGMG/1fichier-dl'))
+        github_btn.clicked.connect(lambda: webbrowser.open('https://github.com/Leinad4Mind/1fichier-dl'))
 
         about_layout.addWidget(logo, 0, 0, 1, 0)
         about_layout.addWidget(github_btn, 1, 0)
