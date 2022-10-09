@@ -69,7 +69,7 @@ def get_link_info(url: str) -> list:
 
 def is_valid_link(url: str) -> bool:
     '''
-    Returns whether `url` is a valid 1fichier domain.
+    Returns True if `url` is a valid 1fichier domain, else it returns False
     '''
     domains = [
         '1fichier.com/',
