@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-import os, sys, logging
+import os
+import sys
+import logging
 from core.gui import gui
 
 if __name__ == '__main__':

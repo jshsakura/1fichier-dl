@@ -15,13 +15,23 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QAbstractScrollArea, QLabel, QLineEdit,
                              QFileDialog, QProgressBar, QStackedWidget,
                              QFormLayout, QListWidget, QComboBox)
+import tkinter as tk
 
-def absp(f):
+
+def absp(path):
     '''
     Get absolute path.
     '''
-    path = os.path.join(os.path.dirname(__file__), '../..')
-    return os.path.abspath(path + '/' + f)
+    if getattr(sys, "frozen", False):
+        # If the 'frozen' flag is set, we are in bundled-app mode!
+        resolved_path = os.path.abspath(os.path.join(sys._MEIPASS, path))
+    else:
+        # Normal development mode. Use os.getcwd() or __file__ as appropriate in your case...
+        relative_path = os.path.join(os.path.dirname(__file__), '../..')
+        resolved_path = os.path.abspath(relative_path + '/' + path)
+
+    return resolved_path
+
 
 def alert(text):
     '''
@@ -29,9 +39,10 @@ def alert(text):
     '''
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Warning)
-    msg.setWindowTitle('Alert')
+    msg.setWindowTitle('안내')
     msg.setText(text)
     msg.exec_()
+
 
 def check_selection(table):
     '''
@@ -42,9 +53,10 @@ def check_selection(table):
     for index in table.selectionModel().selectedRows():
         selection.append(index.row())
     if not selection:
-        alert('No rows were selected.')
+        alert('링크 목록에서 먼저 파일을 선택해주세요.')
     else:
         return selection
+
 
 def create_file(f):
     '''
@@ -57,11 +69,20 @@ def create_file(f):
     f = open(f, 'x')
     f.close()
 
+
+def getClipboardText():
+    root = tk.Tk()
+    # keep the window from showing
+    root.withdraw()
+    return root.clipboard_get()
+
+
 class GuiBehavior:
     def __init__(self, gui):
         self.filter_thread = QThreadPool()
         self.download_thread = QThreadPool()
-        self.download_thread.setMaxThreadCount(1) # Limits concurrent downloads to 1.
+        # Limits concurrent downloads to 1.
+        self.download_thread.setMaxThreadCount(1)
         self.download_workers = []
         self.gui = gui
         self.handle_init()
@@ -83,7 +104,7 @@ class GuiBehavior:
         except FileNotFoundError:
             self.cached_downloads = []
             create_file('app/cache')
-        
+
         '''
         Load settings.
         Create file in case it doesn't exist.
@@ -97,7 +118,7 @@ class GuiBehavior:
         except FileNotFoundError:
             self.settings = None
             create_file('app/settings')
-                
+
     def resume_download(self):
         '''
         Resume selected downloads.
@@ -130,33 +151,37 @@ class GuiBehavior:
         if selected_rows:
             for i in selected_rows:
                 if i < len(self.download_workers):
-                    self.download_workers[i].signals.update_signal.emit(self.download_workers[i].data, [None, None, 'Paused', '0 B/s'])
+                    self.download_workers[i].signals.update_signal.emit(
+                        self.download_workers[i].data, [None, None, '일시정지', '0 B/s'])
                     self.download_workers[i].pause()
 
-    def add_links(self, state, cached_download = ''):
+    def add_links(self, state, cached_download=''):
         '''
         Calls FilterWorker()
         '''
-        worker = FilterWorker(self, cached_download, (self.gui.password.text() if not cached_download else ''))
+        worker = FilterWorker(
+            self, cached_download, (self.gui.password.text() if not cached_download else ''))
 
         worker.signals.download_signal.connect(self.download_receive_signal)
         worker.signals.alert_signal.connect(alert)
-        
+
         self.filter_thread.start(worker)
-    
-    def download_receive_signal(self, row, link, append_row = True, dl_name = '', progress = 0):
+
+    def download_receive_signal(self, row, link, append_row=True, dl_name='', progress=0):
         '''
         Append download to row and start download.
         '''
         if append_row:
             self.gui.table_model.appendRow(row)
-            index = self.gui.table_model.index(self.gui.table_model.rowCount()-1, 4)
+            index = self.gui.table_model.index(
+                self.gui.table_model.rowCount()-1, 4)
             progress_bar = QProgressBar()
             progress_bar.setValue(progress)
             self.gui.table.setIndexWidget(index, progress_bar)
             row[4] = progress_bar
 
-        worker = DownloadWorker(link, self.gui.table_model, row, self.settings, dl_name)
+        worker = DownloadWorker(
+            link, self.gui.table_model, row, self.settings, dl_name)
         worker.signals.update_signal.connect(self.update_receive_signal)
         worker.signals.unpause_signal.connect(self.download_receive_signal)
 
@@ -171,16 +196,18 @@ class GuiBehavior:
         if data:
             if not PyQt5.sip.isdeleted(data[2]):
                 for i in range(len(items)):
-                    if items[i] and isinstance(items[i], str): data[i].setText(items[i])
-                    if items[i] and not isinstance(items[i], str): data[i].setValue(items[i])
-    
+                    if items[i] and isinstance(items[i], str):
+                        data[i].setText(items[i])
+                    if items[i] and not isinstance(items[i], str):
+                        data[i].setValue(items[i])
+
     def set_dl_directory(self):
         file_dialog = QFileDialog(self.gui.settings)
         file_dialog.setFileMode(QFileDialog.Directory)
         file_dialog.exec_()
         self.gui.dl_directory_input.setText(file_dialog.selectedFiles()[0])
-    
-    def change_theme(self, theme = None):
+
+    def change_theme(self, theme=None):
         '''
         Change app palette (theme).
         0 = Light
@@ -194,25 +221,27 @@ class GuiBehavior:
         elif self.gui.theme_select.currentIndex() == 1:
             self.gui.app.setPalette(dark_theme)
 
-
     def save_settings(self):
         with open(absp('app/settings'), 'wb') as f:
             settings = []
-            settings.append(self.gui.dl_directory_input.text())   # Download Directory - 0
-            settings.append(self.gui.theme_select.currentIndex()) # Theme              - 1
-            settings.append(self.gui.timeout_input.value())       # Timeout            - 2
-            settings.append(self.gui.proxy_settings_input.text()) # Proxy Settings     - 3
+            settings.append(self.gui.dl_directory_input.text()
+                            )   # Download Directory - 0
+            # Theme              - 1
+            settings.append(self.gui.theme_select.currentIndex())
+            settings.append(self.gui.timeout_input.value()
+                            )       # Timeout            - 2
+            # Proxy Settings     - 3
+            settings.append(self.gui.proxy_settings_input.text())
             pickle.dump(settings, f)
             self.settings = settings
         self.gui.settings.hide()
-        
+
     def select_settings(self):
         '''
         Select settings page.
         '''
         selection = self.gui.settings_list.selectedIndexes()[0].row()
         self.gui.stacked_settings.setCurrentIndex(selection)
-
 
     def handle_exit(self):
         '''
@@ -221,24 +250,26 @@ class GuiBehavior:
         active_downloads = []
         for w in self.download_workers:
             download = w.return_data()
-            if download: active_downloads.append(download)
+            if download:
+                active_downloads.append(download)
         active_downloads.extend(self.cached_downloads)
 
         with open(absp('app/cache'), 'wb') as f:
             if active_downloads:
                 pickle.dump(active_downloads, f)
-        
+
         os._exit(1)
+
 
 class Gui:
     def __init__(self):
         # Init GuiBehavior()
         self.actions = GuiBehavior(self)
-        self.app_name = '1Fichier Downloader v0.2.0'
+        self.app_name = '1Fichier 다운로더 v0.2.1'
 
         # Create App
-        app = QApplication(sys.argv) 
-        app.setWindowIcon(QIcon(absp('ico.ico')))
+        app = QApplication(sys.argv)
+        app.setWindowIcon(QIcon(absp('res/ico.ico')))
         app.setStyle('Fusion')
         app.aboutToQuit.connect(self.actions.handle_exit)
 
@@ -247,6 +278,7 @@ class Gui:
         # Create Windows
         self.main_win()
         self.add_links_win()
+        # self.add_links_clipboard()
         self.settings_win()
 
         # Change App Theme to saved one (Palette)
@@ -254,7 +286,7 @@ class Gui:
             self.actions.change_theme(self.actions.settings[1])
 
         sys.exit(app.exec_())
-    
+
     def main_win(self):
         # Define Main Window
         self.main = QMainWindow()
@@ -266,16 +298,25 @@ class Gui:
         grid = QGridLayout()
 
         # Top Buttons
-        download_btn = QPushButton(QIcon(absp('res/download.svg')), ' Add Link(s)')
-        download_btn.clicked.connect(lambda: self.add_links.show() if not self.add_links.isVisible() else self.add_links.raise_())
+        download_btn = QPushButton(
+            QIcon(absp('res/download.svg')), ' 다운로드 주소 추가')
+        download_btn.clicked.connect(lambda: self.add_links.show(
+        ) if not self.add_links.isVisible() else self.add_links.raise_())
 
-        settings_btn = QPushButton(QIcon(absp('res/settings.svg')), ' Settings')
-        settings_btn.clicked.connect(lambda: self.settings.show() if not self.settings.isVisible() else self.settings.raise_())
+        download_clipboard_btn = QPushButton(
+            QIcon(absp('res/clipboard.svg')), ' 클립보드 추가')
+
+        settings_btn = QPushButton(
+            QIcon(absp('res/settings.svg')), ' 설정')
+        settings_btn.clicked.connect(lambda: self.settings.show(
+        ) if not self.settings.isVisible() else self.settings.raise_())
 
         # Table
         self.table = QTableView()
-        headers = ['Name', 'Size', 'Status', 'Down Speed', 'Progress', 'Password']
-        self.table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
+        headers = ['파일명', '크기', '상태',
+                   '전송 속도', '진행률', '비밀번호']
+        self.table.setSizeAdjustPolicy(
+            QAbstractScrollArea.AdjustToContentsOnFirstShow)
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSortingEnabled(True)
@@ -287,17 +328,18 @@ class Gui:
 
         # Append widgets to grid
         grid.addWidget(download_btn, 0, 0)
+        # grid.addWidget(download_clipboard_btn, 0, 1)
         grid.addWidget(settings_btn, 0, 1)
         grid.addWidget(self.table, 1, 0, 1, 2)
 
         # Bottom Buttons
-        resume_btn = QPushButton(QIcon(absp('res/resume.svg')), ' Resume')
+        resume_btn = QPushButton(QIcon(absp('res/resume.svg')), ' 선택항목 시작')
         resume_btn.clicked.connect(self.actions.resume_download)
 
-        pause_btn = QPushButton(QIcon(absp('res/pause.svg')), ' Pause')
+        pause_btn = QPushButton(QIcon(absp('res/pause.svg')), ' 선택항목 일시정지')
         pause_btn.clicked.connect(self.actions.pause_download)
 
-        stop_btn = QPushButton(QIcon(absp('res/stop.svg')), ' Remove')
+        stop_btn = QPushButton(QIcon(absp('res/stop.svg')), ' 목록에서 제거')
         stop_btn.clicked.connect(self.actions.stop_download)
 
         # Add buttons to Horizontal Layout
@@ -307,17 +349,17 @@ class Gui:
         hbox.addWidget(stop_btn)
 
         self.main.setWindowFlags(self.main.windowFlags()
-                                & Qt.CustomizeWindowHint)
-                                
+                                 & Qt.CustomizeWindowHint)
+
         grid.addLayout(hbox, 2, 0, 1, 2)
         widget.setLayout(grid)
         self.main.resize(670, 415)
         self.main.show()
-    
+
     def add_links_win(self):
         # Define Add Links Win
         self.add_links = QMainWindow(self.main)
-        self.add_links.setWindowTitle('Add Link(s)')
+        self.add_links.setWindowTitle('다운로드 주소 추가')
         widget = QWidget(self.add_links)
         self.add_links.setCentralWidget(widget)
 
@@ -325,33 +367,36 @@ class Gui:
         layout = QVBoxLayout()
 
         # Links input
-        layout.addWidget(QLabel('Links:'))
+        layout.addWidget(QLabel('링크 목록 (단건 또는 엔터치고 여러건 입력)'))
         self.links = QPlainTextEdit()
         layout.addWidget(self.links)
 
         # Password input
-        layout.addWidget(QLabel('Password:'))
+        layout.addWidget(QLabel('비밀번호 (별도로 설정된 경우에만 입력)'))
         self.password = QLineEdit()
         layout.addWidget(self.password)
 
         # Add links
-        add_btn = QPushButton('Add Link(s)')
+        add_btn = QPushButton('다운로드 목록에 추가')
         add_btn.clicked.connect(self.actions.add_links)
         layout.addWidget(add_btn)
 
         self.add_links.setMinimumSize(300, 200)
         widget.setLayout(layout)
 
+    # def add_links_clipboard(self):
+    #     self.links = getClipboardText()
+
     def settings_win(self):
         # Define Settings Win
         self.settings = QMainWindow(self.main)
-        self.settings.setWindowTitle('Settings')
+        self.settings.setWindowTitle('설정')
 
         # Create StackedWidget and Selection List
         self.stacked_settings = QStackedWidget()
         self.settings_list = QListWidget()
         self.settings_list.setFixedWidth(110)
-        self.settings_list.addItems(['Behavior', 'Connection', 'About'])
+        self.settings_list.addItems(['다운로드 및 테마', '프록시 (Proxy)', '프로그램 정보'])
         self.settings_list.clicked.connect(self.actions.select_settings)
 
         # Central Widget
@@ -366,7 +411,7 @@ class Gui:
         Child widget
         Behavior Settings
         '''
-        
+
         behavior_settings = QWidget()
         self.stacked_settings.addWidget(behavior_settings)
 
@@ -376,9 +421,9 @@ class Gui:
         form_layout = QFormLayout()
 
         # Change Directory
-        form_layout.addRow(QLabel('Download directory:'))
+        form_layout.addRow(QLabel('기본 다운로드 폴더:'))
 
-        dl_directory_btn = QPushButton('Select..')
+        dl_directory_btn = QPushButton('폴더 선택..')
         dl_directory_btn.clicked.connect(self.actions.set_dl_directory)
 
         self.dl_directory_input = QLineEdit()
@@ -389,15 +434,16 @@ class Gui:
         form_layout.addRow(dl_directory_btn, self.dl_directory_input)
 
         # Bottom Buttons
-        save_settings = QPushButton('Save')
+        save_settings = QPushButton('저장')
         save_settings.clicked.connect(self.actions.save_settings)
 
         # Change theme
-        form_layout.addRow(QLabel('Theme:'))
+        form_layout.addRow(QLabel('테마 변경:'))
 
         self.theme_select = QComboBox()
-        self.theme_select.addItems(['Light', 'Dark'])
-        self.theme_select.currentIndexChanged.connect(self.actions.change_theme)
+        self.theme_select.addItems(['밝은 테마', '어두운 테마'])
+        self.theme_select.currentIndexChanged.connect(
+            self.actions.change_theme)
         form_layout.addRow(self.theme_select)
 
         vbox.addLayout(form_layout)
@@ -409,7 +455,7 @@ class Gui:
         Child widget
         Connection Settings
         '''
-        
+
         connection_settings = QWidget()
         self.stacked_settings.addWidget(connection_settings)
 
@@ -419,7 +465,7 @@ class Gui:
         form_layout_c = QFormLayout()
 
         # Timeout
-        form_layout_c.addRow(QLabel('Timeout:'))
+        form_layout_c.addRow(QLabel('타임아웃 변경(기본 30초):'))
         self.timeout_input = QSpinBox()
         if self.actions.settings is not None:
             self.timeout_input.setValue(self.actions.settings[2])
@@ -429,7 +475,7 @@ class Gui:
         form_layout_c.addRow(self.timeout_input)
 
         # Proxy settings
-        form_layout_c.addRow(QLabel('Proxy settings:'))
+        form_layout_c.addRow(QLabel('프록시(Proxy) 목록 직접 입력:'))
         self.proxy_settings_input = QLineEdit()
         if self.actions.settings is not None:
             self.proxy_settings_input.setText(self.actions.settings[3])
@@ -437,7 +483,7 @@ class Gui:
         form_layout_c.addRow(self.proxy_settings_input)
 
         # Bottom buttons
-        save_settings_c = QPushButton('Save')
+        save_settings_c = QPushButton('저장')
         save_settings_c.clicked.connect(self.actions.save_settings)
 
         vbox_c.addLayout(form_layout_c)
@@ -457,15 +503,16 @@ class Gui:
         about_layout.setAlignment(Qt.AlignCenter)
 
         logo = QLabel()
-        logo.setPixmap(QPixmap(absp('res/zap.svg')))
+        logo.setPixmap(QPixmap(absp('res/ico.svg')))
         logo.setAlignment(Qt.AlignCenter)
 
-        text = QLabel(self.app_name)
+        text = QLabel(self.app_name+' (한글)')
         text.setStyleSheet('font-weight: bold; color: #4256AD')
 
         github_btn = QPushButton(QIcon(absp('res/github.svg')), '')
         github_btn.setFixedWidth(32)
-        github_btn.clicked.connect(lambda: webbrowser.open('https://github.com/Leinad4Mind/1fichier-dl'))
+        github_btn.clicked.connect(lambda: webbrowser.open(
+            'https://github.com/jshsakura/1fichier-dl'))
 
         about_layout.addWidget(logo, 0, 0, 1, 0)
         about_layout.addWidget(github_btn, 1, 0)

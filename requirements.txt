@@ -1,3 +1,4 @@
-PyQt5==5.15.1
-lxml==4.6.1
+PyQt5==5.15.2
+lxml==4.9.3
 requests
+pyinstaller

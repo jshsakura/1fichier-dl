@@ -5,7 +5,7 @@ import time
 import lxml.html
 
 FIRST_RUN = True
-PROXY_TXT_API = 'https://www.proxyscan.io/api/proxy?type=https&format=txt&limit=20'
+PROXY_TXT_API = 'https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt'
 PLATFORM = os.name
 
 def get_proxies(settings: str) -> list:
