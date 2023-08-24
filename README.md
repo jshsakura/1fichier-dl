@@ -86,5 +86,5 @@ PyInstaller를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 
 
 - 모든 아이콘은 멋진 무료 아이콘을 제공하는 [Feather](https://feathericons.com/)를 이용하고 있습니다.
 - 윈도우 프로그램의 아이콘은 [svgrepo](https://www.svgrepo.com/)에서 무료 아이콘을 사용하고 있습니다.
-- 무료 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트를 사용합니다.
+- 무료 `https` 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트를 사용합니다.
 - 1Fichier-dl 프로젝트의 제작자는 `manuGMG`이며, 개선판을 만든 [Leinad4Mind](https://github.com/Leinad4Mind/1fichier-dl) 의 `v0.2.0` 버전 프로젝트에서 분기했습니다.
