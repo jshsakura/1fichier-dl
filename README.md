@@ -1,9 +1,13 @@
+<p align="center">
+  <img src="https://github.com/jshsakura/1fichier-dl/blob/main/screenshots/ico.png?raw=true"></img>
+</p><br/><br/>
 **🧙‍♂️ 1Fichier-dl 프로젝트.**
+
 현재 더 이상 유지보수 되고 있지 않은 **1Fichier-dl** 프로젝트의 한국어 사용자용 포크 버전입니다.
+
 (This is a Korean fork version of the 1Fichier-dl project, which is no longer being maintained.)
 
 <br/>
-  <img style="width:64px" src="https://github.com/jshsakura/1fichier-dl/blob/main/screenshots/ico.png?raw=true"/><br/><br/>
 
 # 😺 1Fichier 다운로더 한글판
 
@@ -13,14 +17,27 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview-1fichier-site.png"></img>
 </p>
+<p align="center">
+  <b>브라우저에서 1fichier 다운로드 링크(URL)를 복사</b>
+</p>
 <br/>
 <p align="center">
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview.png"></img>
 </p>
 
 <p align="center">
-  <b>1fichier 프로그램에 다운로드 주소를 입력하는 것으로 간단하게 동작합니다.</b>
+  <b>1fichier 다운로더에 주소를 입력하는 것으로 간단하게 동작.</b>
 </p>
+
+## 😼 기능 소개
+
+⭐ 다운로드 `링크` 주소 입력만으로 다운로드 목록을 관리할 수 있으니 이젠 마음껏 걸어두고 주무셔도 좋습니다.
+
+⭐ 무료 사용자의 연속 다운로드 시 대기시간이 발생하는 불편함을 우회 `Bypass` 합니다.
+
+⭐ 설정 > 연결 메뉴에서 URL을 통해 사용자가 프록시 목록을 직접 입력할 수 있습니다.
+
+_여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/Screenshot_Light.png"></img>
@@ -37,16 +54,6 @@
 <p align="center">
   <b>어두운 (다크) 테마</b>
 </p>
-
-## 😼 기능 소개
-
-⭐ 다운로드 `링크` 주소 입력만으로 다운로드 목록을 관리할 수 있으니 이젠 마음껏 걸어두고 주무셔도 좋습니다.
-
-⭐ 무료 사용자의 연속 다운로드 시 대기시간이 발생하는 불편함을 우회 `Bypass` 합니다.
-
-⭐ 설정 > 연결 메뉴에서 URL을 통해 사용자가 프록시 목록을 직접 입력할 수 있습니다.
-
-_여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 
 ## 😻 개선된 사항
 
