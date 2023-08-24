@@ -1,14 +1,14 @@
 **🧙‍♂️ 1Fichier-dl 프로젝트.**
-<br/>
-<p align="left">
-  <img src="https://github.com/jshsakura/1fichier-dl/blob/main/screenshots/ico.png?raw=true"></img>
-</p><br/>
+
 
 현재 더 이상 유지보수 되고 있지 않은 **1Fichier-dl** 프로젝트의 한국어 사용자용 포크 버전입니다.
 
 (This is a Korean fork version of the 1Fichier-dl project, which is no longer being maintained.)
 
-<br/>
+
+<p align="left">
+  <img src="https://github.com/jshsakura/1fichier-dl/blob/main/screenshots/ico.png?raw=true"></img>
+</p>
 
 # 😺 1Fichier 다운로더 한글판
 
