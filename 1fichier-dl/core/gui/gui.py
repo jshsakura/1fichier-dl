@@ -22,6 +22,7 @@ def absp(path):
     '''
     Get absolute path.
     '''
+
     if getattr(sys, "frozen", False):
         # If the 'frozen' flag is set, we are in bundled-app mode!
         resolved_path = os.path.abspath(os.path.join(sys._MEIPASS, path))
@@ -53,7 +54,7 @@ def check_selection(table):
     for index in table.selectionModel().selectedRows():
         selection.append(index.row())
     if not selection:
-        alert('링크 목록에서 먼저 파일을 선택해주세요.')
+        alert('다운로드 목록에서 먼저 파일을 선택해주세요.')
     else:
         return selection
 

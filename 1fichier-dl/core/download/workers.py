@@ -1,4 +1,5 @@
 import os
+import sys
 from .download import *
 from PyQt5.QtCore import Qt, QObject, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QStandardItem
@@ -65,7 +66,7 @@ class FilterWorker(QRunnable):
                         password = QStandardItem(self.password)
                         row.append(password)
                     else:
-                        no_password = QStandardItem('No password')
+                        no_password = QStandardItem('비밀번호 없음')
                         no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
                         row.append(no_password)
 
@@ -90,7 +91,7 @@ class FilterWorker(QRunnable):
                         password = QStandardItem(self.password)
                         row.append(password)
                     else:
-                        no_password = QStandardItem('No password')
+                        no_password = QStandardItem('비밀번호 없음')
                         no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
                         row.append(no_password)
 
@@ -116,8 +117,10 @@ class DownloadWorker(QRunnable):
 
         # Default settings
         self.timeout = 30
-        self.dl_directory = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '../..'))
+
+        """ Get absolute path to resource, works for dev and for PyInstaller """
+        self.dl_directory = getattr(
+            sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
         self.proxy_settings = None
 
         # Override defaults
@@ -167,6 +170,6 @@ class DownloadWorker(QRunnable):
             data.append(self.link)
             data.append(self.dl_name) if self.dl_name else data.append(None)
             data.append(self.data[5].text()) if self.data[5].text(
-            ) != 'No password' else data.append(None)
+            ) != '비밀번호 없음' else data.append(None)
             data.append(self.data[4].value())
             return data

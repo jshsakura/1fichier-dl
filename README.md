@@ -66,7 +66,7 @@ _여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 현재 종속성은 단 3가지 뿐이지만 파이썬 3.7 버전 기준으로 진행해야 문제가 없습니다.
 
 ```
-python 1fichier-dl/1Ficher-dl-kr.py
+python 1fichier-dl/1ficher-dl-kr.py
 ```
 
 ## 😾 PyInstaller를 이용한 윈도우 exe 빌드
@@ -75,10 +75,12 @@ python 1fichier-dl/1Ficher-dl-kr.py
 프로젝트 폴더에서 `requirements.txt` 를 설치하고 직접 빌드도 가능합니다.
 
 ```
-pyinstaller --windowed --noconsole --onefile --clean --icon=./1fichier-dl/res/ico.ico --add-data "1fichier-dl/res/*.*;res/" ./1fichier-dl/1Ficher-dl-kr.py
+pyinstaller --windowed --noconsole --clean --icon=./1fichier-dl/res/ico.ico --add-data "1fichier-dl/res/*.*;res/" ./1fichier-dl/1ficher-dl-kr.py
 ```
 
-PyInstaller를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 경우 사용하는 명령어의 예시를 참고해보세요.
+`--onefile` 옵션 사용시 캐쉬경로가 망가지기 때문에 폴더 구조로 동일하게 빌드합니다.
+
+`PyInstaller`를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 경우 사용하는 위 명령어의 예시를 참고해보세요.
 
 ## 😽 무한한 감사를 드립니다. 🫶
 

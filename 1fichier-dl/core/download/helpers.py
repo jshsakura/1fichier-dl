@@ -5,24 +5,41 @@ import time
 import lxml.html
 
 FIRST_RUN = True
-PROXY_TXT_API = 'https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt'
+PROXY_TXT_API = ['https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt',
+                 'https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt']
 PLATFORM = os.name
+
 
 def get_proxies(settings: str) -> list:
     '''
     Get proxies (str) from API.
     '''
     global FIRST_RUN
-    
+
     if FIRST_RUN:
         FIRST_RUN = False
         return [None]
 
-    r_proxies = requests.get(f'{settings if settings else PROXY_TXT_API}').text.splitlines()
+    r_proxies = []
+
+    '''
+    Proxy 설정이 있는 경우 기본 프록시 세팅은 무시하고 진행
+    '''
+    if settings:
+        r_proxies = requests.get(settings).text.splitlines()
+    else:
+        for p in PROXY_TXT_API:
+            proxy_list = requests.get(p).text.splitlines()
+            for item in proxy_list:
+                r_proxies.append(item)
+
     proxies = []
     for p in r_proxies:
-        proxies.append({'https': f'{p}'} if PLATFORM == 'nt' else {'https': f'https://{p}'})
+        # Require SSL error avoidance to bypass proxy
+        proxies.append({'https': f'http://{p}'} if PLATFORM ==
+                       'nt' else {'https': f'https://{p}'})
     return proxies
+
 
 def convert_size(size_bytes: int) -> str:
     '''
@@ -36,6 +53,7 @@ def convert_size(size_bytes: int) -> str:
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
     return '%s %s' % (s, size_name[i])
+
 
 def download_speed(bytes_read: int, start_time: float) -> str:
     '''
@@ -52,6 +70,7 @@ def download_speed(bytes_read: int, start_time: float) -> str:
     s = round(bps / p, 2)
     return '%s %s' % (s, size_name[i])
 
+
 def get_link_info(url: str) -> list:
     '''
     Get file name and size. 
@@ -67,6 +86,7 @@ def get_link_info(url: str) -> list:
     except:
         return None
 
+
 def is_valid_link(url: str) -> bool:
     '''
     Returns True if `url` is a valid 1fichier domain, else it returns False
@@ -81,7 +101,7 @@ def is_valid_link(url: str) -> bool:
         'piecejointe.net/',
         'pjointe.com/',
         'tenvoi.com/',
-        'dl4free.com/'
+        'dl4free.com/',
     ]
 
-    return any([x in url.lower() for x in domains]) 
+    return any([x in url.lower() for x in domains])

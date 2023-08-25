@@ -10,7 +10,7 @@ from .helpers import *
 
 
 def wait_for_password(worker, password=''):
-    status = 'Bad password' if password else 'Waiting for password'
+    status = '잘못된 비밀번호' if password else '비밀번호 입력 대기 중'
     while True:
         if not PyQt5.sip.isdeleted(worker.data[5]):
             if worker.data[5].text() == password:
@@ -45,13 +45,10 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
 
     while downloading:
         p = None
-
         if worker.stopped or worker.paused:
             return None if not worker.dl_name else worker.dl_name
-
         if not wait_for_password(worker):
             return
-
         worker.signals.update_signal.emit(
             worker.data, [None, None, f'우회 시도 ({i})'])
         if worker.proxies:
@@ -60,16 +57,24 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
         else:
             logging.debug('Getting proxy.')
             worker.proxies = get_proxies(worker.proxy_settings)
-
         try:
             if not p:
                 p = worker.proxies.pop()
-            r = requests.post(url, payload, proxies=p, timeout=worker.timeout)
+
+            # logging.debug('Try Proxy : ' + str(p))
+            # test = requests.get('https://jsonip.com',
+            #                     proxies=p, verify=False, allow_redirects=False, timeout=20)
+
+            # logging.debug('TEST Call IP: '+test.json()['ip'])
+
+            r = requests.post(url, payload,
+                              proxies=p, timeout=worker.timeout, verify=False)
+
             html = lxml.html.fromstring(r.content)
             if html.xpath('//*[@id="pass"]'):
                 payload['pass'] = worker.data[5].text()
                 r = requests.post(url, payload, proxies=p,
-                                  timeout=worker.timeout)
+                                  timeout=worker.timeout, verify=False)
         except:
             # Proxy failed.
             logging.debug('Proxy failed.')
@@ -85,7 +90,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
 
         if not html.xpath('/html/body/div[4]/div[2]/a'):
             logging.debug('Failed to parse direct link.')
-            if 'Bad password' in r.text:
+            if '잘못된 비밀번호' in r.text:
                 if not wait_for_password(worker, payload['pass']):
                     return
         else:
@@ -99,7 +104,8 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                 'Range': f'bytes={downloaded_size}-'
             }
 
-            rx = requests.get(urlx, stream=True, headers=headers, proxies=p)
+            rx = requests.get(urlx, stream=True, headers=headers,
+                              proxies=p, verify=False)
             if 'Content-Disposition' in rx.headers:
                 logging.debug('Starting download.')
                 name = rx.headers['Content-Disposition'].split('"')[1]
