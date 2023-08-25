@@ -1,3 +1,4 @@
+import logging
 import requests
 import math
 import os
@@ -36,8 +37,11 @@ def get_proxies(settings: str) -> list:
     proxies = []
     for p in r_proxies:
         # Require SSL error avoidance to bypass proxy
-        proxies.append({'https': f'http://{p}'} if PLATFORM ==
-                       'nt' else {'https': f'https://{p}'})
+        proxy_item = p
+        if not 'http' in proxy_item[0:4]:
+            proxy_item = f'http://{proxy_item}'
+        proxies.append({'https': proxy_item} if PLATFORM ==
+                       'nt' else {'https': f'{proxy_item.replace("http","https")}'})
     return proxies
 
 
