@@ -10,7 +10,7 @@
   <img src="https://github.com/jshsakura/1fichier-dl/blob/main/screenshots/ico.png?raw=true"></img>
 </p>
 
-# 😺 1Fichier 다운로더 한글판
+# 😺 1Fichier 다운로더 한국어화
 
 간단하게 윈도우에서 설치 없이 `exe` 파일로 실행이 가능한 `1Fichier 다운로드 매니저` 프로그램입니다.
 매 다운로드 마다 대기시간을 기다릴 필요 없이 가급적 빠른 속도로 다운로드 작업이 가능하도록 도와드립니다.
@@ -60,7 +60,9 @@
 
 - 영문 GUI 한글화 진행 및 GUI 아이콘 컬러의 가독성 개선
 - 프로그램이 기본으로 제공하는 기본 프록시 목록의 변경
-- 단일 파일의 `exe`로 빌드하도록 개선 중
+- pyinstaller로 쉽게 빌드
+(단일 파일의 `exe`로 빌드하도록 개선 중)
+
 
 ## 🙀 윈도우가 아닌 환경에서 실행
 
