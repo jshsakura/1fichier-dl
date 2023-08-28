@@ -57,7 +57,7 @@
 </p>
 
 <br/>
-*사용방법*
+<b>사용방법</b>
 <br/>
 https://opencourse.kr/1fichier-dl-kr/
 <br/>
