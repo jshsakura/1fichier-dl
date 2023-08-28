@@ -56,12 +56,23 @@
   <b>어두운 (다크) 테마</b>
 </p>
 
+<br/>
+*사용방법*
+<br/>
+https://opencourse.kr/1fichier-dl-kr/
+<br/>
+<br/>
+<br/>
+
+
+
 ## 😻 개선된 사항
 
 - 영문 GUI 한글화 진행 및 GUI 아이콘 컬러의 가독성 개선
 - 프로그램이 기본으로 제공하는 기본 프록시 목록의 변경
 - pyinstaller로 쉽게 빌드
 (단일 파일의 `exe`로 빌드하도록 개선 중)
+
 
 
 ## 🙀 윈도우가 아닌 환경에서 실행
@@ -72,6 +83,8 @@
 ```
 python 1fichier-dl/1ficher-dl-kr.py
 ```
+
+
 
 ## 😾 PyInstaller를 이용한 윈도우 exe 빌드
 
@@ -85,6 +98,8 @@ pyinstaller --windowed --noconsole --clean --icon=./1fichier-dl/res/ico.ico --ad
 `--onefile` 옵션 사용시 캐쉬경로가 망가지기 때문에 폴더 구조로 동일하게 빌드합니다.
 
 `PyInstaller`를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 경우 사용하는 위 명령어의 예시를 참고해보세요.
+
+
 
 ## 😽 무한한 감사를 드립니다. 🫶
 
