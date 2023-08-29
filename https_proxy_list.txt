@@ -1,6 +1,7 @@
-https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/http.txt
+https://raw.githubusercontent.com/zloi-user/hideip.me/main/https.txt
 https://raw.githubusercontent.com/prxchk/proxy-list/main/http.txt
 https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt
 https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt
 https://raw.githubusercontent.com/proxy4parsing/proxy-list/main/http.txt
 https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/https.txt
+https://raw.githubusercontent.com/caliphdev/Proxy-List/master/http.txt
