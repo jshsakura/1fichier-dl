@@ -75,10 +75,9 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                 p = worker.proxies.pop()
 
             # logging.debug('Try Proxy : ' + str(p))
-            # test = requests.get('https://jsonip.com',headers=headers_opt
+            # test = requests.get('https://jsonip.com', headers=headers_opt,
             #                     proxies=p, verify=False, allow_redirects=False, timeout=20)
-
-            # logging.debug('TEST Call IP: '+test.json()['ip'])
+            # logging.debug('Now Proxy IP: '+test.json()['ip'])
 
             r = requests.post(url, payload, headers=headers_opt,
                               proxies=p, timeout=worker.timeout, verify=False)

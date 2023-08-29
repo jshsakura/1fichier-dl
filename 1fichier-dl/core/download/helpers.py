@@ -4,9 +4,12 @@ import math
 import os
 import time
 import lxml.html
+import urllib3
+# SSL 경고 무시
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 FIRST_RUN = True
-PROXY_TXT_API = 'https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/https_proxy_list'
+PROXY_TXT_API = 'https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/https_proxy_list.txt'
 PLATFORM = os.name
 
 
@@ -28,10 +31,15 @@ def get_proxies(settings: str) -> list:
     if settings:
         r_proxies = requests.get(settings).text.splitlines()
     else:
+        '''
+        배열 형태의 proxy 서버 목록
+        '''
         proxy_arr_list = requests.get(PROXY_TXT_API).text.splitlines()
         for p in proxy_arr_list:
             proxy_list = requests.get(p).text.splitlines()
-            for item in proxy_list:
+            # 프록시 서버의 중복 제거
+            unique_proxy_list = list(set(proxy_list))
+            for item in unique_proxy_list:
                 r_proxies.append(item)
 
     proxies = []
