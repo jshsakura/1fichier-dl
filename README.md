@@ -17,8 +17,17 @@
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview-1fichier-site.png"></img>
 </p>
 <p align="center">
-  <b>브라우저에서 1fichier 다운로드 링크(URL)를 복사</b>
+  <b>브라우저에서 1fichier.com 다운로드 링크(URL)를 복사</b>
 </p>
+<br/>
+<br/>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview-ouo-shortlink.png"></img>
+</p>
+<p align="center">
+  <b>브라우저에서 ouo.io 단축 링크(URL)를 복사하는 경우 자동으로 캡챠 우회</b>
+</p>
+<br/>
 <br/>
 <p align="center">
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview.png"></img>
