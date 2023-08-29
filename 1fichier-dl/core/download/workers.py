@@ -4,6 +4,7 @@ from .download import *
 from PyQt5.QtCore import Qt, QObject, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QStandardItem
 from .helpers import is_valid_link
+from .recapcha import ouo_bypass
 
 
 class WorkerSignals(QObject):
@@ -35,12 +36,18 @@ class FilterWorker(QRunnable):
             links = self.links.toPlainText().splitlines()
 
             for link in links:
+                # 만약 단축 URL ouo_bypass인 경우 recapcha 우회
+                if 'ouo.io' in link:
+                    link = ouo_bypass(link)['bypassed_link']
+                    logging.debug('parsing url: ' + link)
+
                 link = link.strip()
                 if is_valid_link(link):
                     if not 'https://' in link[0:8] and not 'http://' in link[0:7]:
                         link = f'https://{link}'
                     if '&' in link:
                         link = link.split('&')[0]
+
                     self.valid_links.append(link)
 
             if not self.valid_links:
