@@ -1,10 +1,8 @@
 **🧙‍♂️ 1Fichier-dl 프로젝트.**
 
-
 현재 더 이상 유지보수 되고 있지 않은 **1Fichier-dl** 프로젝트의 한국어 사용자용 포크 버전입니다.
 
 (This is a Korean fork version of the 1Fichier-dl project, which is no longer being maintained.)
-
 
 <p align="left">
   <img src="https://github.com/jshsakura/1fichier-dl/blob/main/screenshots/ico.png?raw=true"></img>
@@ -40,7 +38,7 @@
 
 ⭐ 설정 > 연결 메뉴에서 URL을 통해 사용자가 프록시 목록을 직접 입력할 수 있습니다.
 
-*여러분의 인생은 짧습니다. 더이상 기다리지마세요.*
+_여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 
 <br/>
 <br/>
@@ -68,9 +66,9 @@
 - 영문 GUI 한글화 진행 및 GUI 아이콘 컬러의 가독성 개선
 - 프로그램이 기본으로 제공하는 기본 프록시 목록의 변경
 - pyinstaller로 쉽게 빌드
-(단일 파일의 `exe`로 빌드하도록 개선 중)
-<br/>
-<br/>
+  (단일 파일의 `exe`로 빌드하도록 개선 중)
+  <br/>
+  <br/>
 
 ## 🙀 윈도우가 아닌 환경에서 실행
 
@@ -80,6 +78,7 @@
 ```
 python 1fichier-dl/1ficher-dl-kr.py
 ```
+
 <br/>
 <br/>
 
@@ -100,7 +99,8 @@ pyinstaller --windowed --noconsole --clean --icon=./1fichier-dl/res/ico.ico --ad
 
 ## 😽 무한한 감사를 드립니다. 🫶
 
-- 모든 아이콘은 멋진 무료 아이콘을 제공하는 [Feather](https://feathericons.com/)를 이용하고 있습니다.
-- 윈도우 프로그램의 아이콘은 [svgrepo](https://www.svgrepo.com/)에서 무료 아이콘을 사용하고 있습니다.
-- 무료 `https` 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트를 사용합니다.
-- 1Fichier-dl 프로젝트의 제작자는 `manuGMG`이며, 개선판을 만든 [Leinad4Mind](https://github.com/Leinad4Mind/1fichier-dl) 의 `v0.2.0` 버전 프로젝트에서 분기했습니다.
+- 모든 아이콘은 멋진 무료 아이콘을 제공하는 [Feather](https://feathericons.com/)를 이용합니다.
+- 윈도우 프로그램의 아이콘은 [svgrepo](https://www.svgrepo.com/)에서 무료 아이콘을 제공합니다.
+- 무료 `https` 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트 외 다수 사용
+- 1Fichier-dl 프로젝트의 제작자는 `manuGMG`이며, 개선판을 만든 [Leinad4Mind](https://github.com/Leinad4Mind/1fichier-dl) 의 `v0.2.0` 버전 프로젝트에서 분기
+- 링크 복사 불편함을 줄이기 위해 ouo.io 단축 URL의 경우 캡챠를 우회하는 [xcscxr](https://github.com/xcscxr) 의 [ouo-bypass](https://github.com/xcscxr/ouo-bypass) 프로젝트 적용
