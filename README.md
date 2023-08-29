@@ -29,6 +29,8 @@
 <p align="center">
   <b>1fichier 다운로더에 주소를 입력하는 것으로 간단하게 동작.</b>
 </p>
+<br/>
+<br/>
 
 ## 😼 기능 소개
 
@@ -40,6 +42,8 @@
 
 *여러분의 인생은 짧습니다. 더이상 기다리지마세요.*
 
+<br/>
+<br/>
 <p align="center">
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/Screenshot_Light.png"></img>
 </p>
@@ -57,14 +61,7 @@
 </p>
 
 <br/>
-<b>사용방법</b>
 <br/>
-https://opencourse.kr/1fichier-dl-kr/
-<br/>
-<br/>
-<br/>
-
-
 
 ## 😻 개선된 사항
 
@@ -72,8 +69,8 @@ https://opencourse.kr/1fichier-dl-kr/
 - 프로그램이 기본으로 제공하는 기본 프록시 목록의 변경
 - pyinstaller로 쉽게 빌드
 (단일 파일의 `exe`로 빌드하도록 개선 중)
-
-
+<br/>
+<br/>
 
 ## 🙀 윈도우가 아닌 환경에서 실행
 
@@ -83,8 +80,8 @@ https://opencourse.kr/1fichier-dl-kr/
 ```
 python 1fichier-dl/1ficher-dl-kr.py
 ```
-
-
+<br/>
+<br/>
 
 ## 😾 PyInstaller를 이용한 윈도우 exe 빌드
 
@@ -98,8 +95,8 @@ pyinstaller --windowed --noconsole --clean --icon=./1fichier-dl/res/ico.ico --ad
 `--onefile` 옵션 사용시 캐쉬경로가 망가지기 때문에 폴더 구조로 동일하게 빌드합니다.
 
 `PyInstaller`를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 경우 사용하는 위 명령어의 예시를 참고해보세요.
-
-
+<br/>
+<br/>
 
 ## 😽 무한한 감사를 드립니다. 🫶
 
