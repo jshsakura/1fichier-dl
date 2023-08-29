@@ -35,6 +35,7 @@ def RecaptchaV3():
     res = client.post(url_base+'reload',
                       params=f'k={params["k"]}', data=post_data)
     answer = re.findall(r'"rresp","(.*?)"', res.text)[0]
+    res.close()
     return answer
 
 # -------------------------------------------
@@ -79,10 +80,13 @@ def ouo_bypass(url):
                           allow_redirects=False, impersonate="chrome110")
         next_url = f"{p.scheme}://{p.hostname}/xreallcygo/{id}"
 
-    return {
+    r_links = {
         'original_link': url,
         'bypassed_link': res.headers.get('Location')
     }
+
+    res.close()
+    return r_links
 
 # -------------------------------------------
 

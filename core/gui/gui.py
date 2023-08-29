@@ -16,7 +16,6 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QFileDialog, QProgressBar, QStackedWidget,
                              QFormLayout, QListWidget, QComboBox)
 import tkinter as tk
-from ..download.recapcha import *
 
 
 def absp(path):

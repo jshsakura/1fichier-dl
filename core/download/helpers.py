@@ -26,7 +26,7 @@ def get_proxies(settings: str) -> list:
     r_proxies = []
 
     '''
-    Proxy 설정이 있는 경우 기본 프록시 세팅은 무시하고 진행
+    저장된 Proxy 설정이 있는 경우 기본 프록시 세팅을 무시하고 적용
     '''
     if settings:
         r_proxies = requests.get(settings).text.splitlines()
@@ -34,13 +34,14 @@ def get_proxies(settings: str) -> list:
         '''
         배열 형태의 proxy 서버 목록
         '''
-        proxy_arr_list = requests.get(PROXY_TXT_API).text.splitlines()
-        for p in proxy_arr_list:
-            proxy_list = requests.get(p).text.splitlines()
-            # 프록시 서버의 중복 제거
-            unique_proxy_list = list(set(proxy_list))
-            for item in unique_proxy_list:
-                r_proxies.append(item)
+        with requests.Session() as client:
+            proxy_arr_list = client.get(PROXY_TXT_API).text.splitlines()
+            for p in proxy_arr_list:
+                proxy_list = client.get(p).text.splitlines()
+                # 프록시 서버의 중복 제거
+                unique_proxy_list = list(set(proxy_list))
+                for item in unique_proxy_list:
+                    r_proxies.append(item)
 
     proxies = []
     for p in r_proxies:
@@ -94,6 +95,7 @@ def get_link_info(url: str) -> list:
             return ['Private File', '- MB']
         name = html.xpath('//td[@class=\'normal\']')[0].text
         size = html.xpath('//td[@class=\'normal\']')[2].text
+        r.close()
         return [name, size]
     except:
         return None

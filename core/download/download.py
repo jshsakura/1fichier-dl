@@ -62,8 +62,10 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             return None if not worker.dl_name else worker.dl_name
         if not wait_for_password(worker):
             return
+
         worker.signals.update_signal.emit(
-            worker.data, [None, None, f'우회 시도 ({i})'])
+            worker.data, [None, None, f'로컬 IP'])
+
         if worker.proxies:
             logging.debug('Popping proxy.')
             p = worker.proxies.pop()
@@ -78,6 +80,9 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             # test = requests.get('https://jsonip.com', headers=headers_opt,
             #                     proxies=p, verify=False, allow_redirects=False, timeout=20)
             # logging.debug('Now Proxy IP: '+test.json()['ip'])
+
+            worker.signals.update_signal.emit(
+                worker.data, [None, None, f'우회 시도 ({i}) ' + str(p['https']).replace('http://', '').replace('https://', '')])
 
             r = requests.post(url, payload, headers=headers_opt,
                               proxies=p, timeout=worker.timeout, verify=False)
@@ -109,10 +114,13 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             logging.debug('Parsed direct link.')
             old_url = url
             urlx = html.xpath('/html/body/div[4]/div[2]/a')[0].get('href')
+            logging.debug('Parsed urlx Check: '+str(urlx))
+            headers_opt['Referer'] = old_url
             headers_opt['Range'] = f'bytes={downloaded_size}-'
 
             rx = requests.get(urlx, stream=True, headers=headers_opt,
                               proxies=p, verify=False)
+
             if 'Content-Disposition' in rx.headers:
                 logging.debug('Starting download.')
                 name = rx.headers['Content-Disposition'].split('"')[1]
