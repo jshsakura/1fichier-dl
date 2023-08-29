@@ -25,7 +25,7 @@
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview-ouo-shortlink.png"></img>
 </p>
 <p align="center">
-  <b>브라우저에서 ouo.io 단축 링크(URL)를 복사하는 경우 자동으로 캡챠 우회</b>
+  <b>브라우저에서 ouo.io 단축 링크(URL)를 바로 복사해서 입력하는 경우, 자동으로 캡챠 우회</b>
 </p>
 <br/>
 <br/>
