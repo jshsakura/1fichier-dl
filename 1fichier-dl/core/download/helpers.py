@@ -6,8 +6,7 @@ import time
 import lxml.html
 
 FIRST_RUN = True
-PROXY_TXT_API = ['https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt',
-                 'https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt']
+PROXY_TXT_API = 'https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/https_proxy_list'
 PLATFORM = os.name
 
 
@@ -29,7 +28,8 @@ def get_proxies(settings: str) -> list:
     if settings:
         r_proxies = requests.get(settings).text.splitlines()
     else:
-        for p in PROXY_TXT_API:
+        proxy_arr_list = requests.get(PROXY_TXT_API).text.splitlines()
+        for p in proxy_arr_list:
             proxy_list = requests.get(p).text.splitlines()
             for item in proxy_list:
                 r_proxies.append(item)

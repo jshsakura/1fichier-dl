@@ -1,5 +1,5 @@
-PyQt5==5.15.2
+PyQt5==5.15.9
 lxml==4.9.3
 requests
 urllib3==1.22
-pyinstaller
+# pyinstaller==5.13.0 # python -m pip uninstall pyinstalle, python ./waf all --target-arch=64bit

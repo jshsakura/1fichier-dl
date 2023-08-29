@@ -33,6 +33,19 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
     url = worker.link
     i = 1
 
+    headers_opt = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.54',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'cross-site',
+        'Sec-Fetch-User': '?1',
+        'Referer': url,
+    }
+
     if worker.dl_name:
         try:
             downloaded_size = os.path.getsize(
@@ -62,12 +75,12 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                 p = worker.proxies.pop()
 
             # logging.debug('Try Proxy : ' + str(p))
-            # test = requests.get('https://jsonip.com',
+            # test = requests.get('https://jsonip.com',headers=headers_opt
             #                     proxies=p, verify=False, allow_redirects=False, timeout=20)
 
             # logging.debug('TEST Call IP: '+test.json()['ip'])
 
-            r = requests.post(url, payload,
+            r = requests.post(url, payload, headers=headers_opt,
                               proxies=p, timeout=worker.timeout, verify=False)
 
             html = lxml.html.fromstring(r.content)
@@ -97,14 +110,9 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
             logging.debug('Parsed direct link.')
             old_url = url
             urlx = html.xpath('/html/body/div[4]/div[2]/a')[0].get('href')
+            headers_opt['Range'] = f'bytes={downloaded_size}-'
 
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36',
-                'Referer': old_url,
-                'Range': f'bytes={downloaded_size}-'
-            }
-
-            rx = requests.get(urlx, stream=True, headers=headers,
+            rx = requests.get(urlx, stream=True, headers=headers_opt,
                               proxies=p, verify=False)
             if 'Content-Disposition' in rx.headers:
                 logging.debug('Starting download.')
