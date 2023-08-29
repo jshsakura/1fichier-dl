@@ -16,21 +16,34 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QFileDialog, QProgressBar, QStackedWidget,
                              QFormLayout, QListWidget, QComboBox)
 import tkinter as tk
+from ..download.recapcha import *
 
 
 def absp(path):
     '''
     Get absolute path.
     '''
-
     if getattr(sys, "frozen", False):
-        # If the 'frozen' flag is set, we are in bundled-app mode!
-        resolved_path = os.path.abspath(os.path.join(sys._MEIPASS, path))
+        # Pyinstaller 컴파일 이후 경로
+        resolved_path = resource_path(path)
     else:
-        # Normal development mode. Use os.getcwd() or __file__ as appropriate in your case...
-        relative_path = os.path.join(os.path.dirname(__file__), '../..')
-        resolved_path = os.path.abspath(relative_path + '/' + path)
+        # Python 파일 실행시 경로
+        relative_path = os.path.join(os.path.dirname(__file__), '.')
+        resolved_path = os.path.join(os.path.abspath(relative_path), path)
 
+    return resolved_path
+
+
+def resource_path(relative_path):
+    # Get absolute path to resource, works for dev and for PyInstaller
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(
+        os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+
+def abs_config(path):
+    # 프로그램 실행 경로로 고정
+    resolved_path = os.path.abspath(path)
     return resolved_path
 
 
@@ -64,7 +77,7 @@ def create_file(f):
     Create empty file.
     [note] Used to create app/settings and app/cache.
     '''
-    f = absp(f)
+    f = abs_config(f)
     logging.debug(f'Attempting to create file: {f}...')
     os.makedirs(os.path.dirname(f), exist_ok=True)
     f = open(f, 'x')
@@ -94,7 +107,7 @@ class GuiBehavior:
         Create file in case it does not exist.
         '''
         try:
-            with open(absp('app/cache'), 'rb') as f:
+            with open(abs_config('app/cache'), 'rb') as f:
                 self.cached_downloads = pickle.load(f)
                 for download in self.cached_downloads:
                     self.gui.links = download[0]
@@ -111,7 +124,7 @@ class GuiBehavior:
         Create file in case it doesn't exist.
         '''
         try:
-            with open(absp('app/settings'), 'rb') as f:
+            with open(abs_config('app/settings'), 'rb') as f:
                 self.settings = pickle.load(f)
         except EOFError:
             self.settings = None
@@ -178,6 +191,11 @@ class GuiBehavior:
                 self.gui.table_model.rowCount()-1, 4)
             progress_bar = QProgressBar()
             progress_bar.setValue(progress)
+            progress_bar.setGeometry(200, 150, 200, 30)
+            # setting value of n for 2 decimal values
+            n = 100
+            # setting maximum value for 2 decimal points
+            progress_bar.setMaximum(100 * n)
             self.gui.table.setIndexWidget(index, progress_bar)
             row[4] = progress_bar
 
@@ -196,11 +214,16 @@ class GuiBehavior:
         '''
         if data:
             if not PyQt5.sip.isdeleted(data[2]):
+
                 for i in range(len(items)):
                     if items[i] and isinstance(items[i], str):
-                        data[i].setText(items[i])
+                        data[i].setText(str(items[i]))
                     if items[i] and not isinstance(items[i], str):
-                        data[i].setValue(items[i])
+                        # setting the value by multiplying it to 100
+                        n = 100
+                        data[i].setValue(int(items[i]) * n)
+                        # progress_bar float issue casting fix
+                        data[i].setFormat("%.02f %%" % items[i])
 
     def set_dl_directory(self):
         file_dialog = QFileDialog(self.gui.settings)
@@ -223,7 +246,7 @@ class GuiBehavior:
             self.gui.app.setPalette(dark_theme)
 
     def save_settings(self):
-        with open(absp('app/settings'), 'wb') as f:
+        with open(abs_config('app/settings'), 'wb') as f:
             settings = []
             settings.append(self.gui.dl_directory_input.text()
                             )   # Download Directory - 0
@@ -255,7 +278,7 @@ class GuiBehavior:
                 active_downloads.append(download)
         active_downloads.extend(self.cached_downloads)
 
-        with open(absp('app/cache'), 'wb') as f:
+        with open(abs_config('app/cache'), 'wb') as f:
             if active_downloads:
                 pickle.dump(active_downloads, f)
 
@@ -334,13 +357,16 @@ class Gui:
         grid.addWidget(self.table, 1, 0, 1, 2)
 
         # Bottom Buttons
-        resume_btn = QPushButton(QIcon(absp('res/resume.svg')), ' 선택항목 시작')
+        resume_btn = QPushButton(
+            QIcon(absp('res/resume.svg')), ' 선택항목 시작')
         resume_btn.clicked.connect(self.actions.resume_download)
 
-        pause_btn = QPushButton(QIcon(absp('res/pause.svg')), ' 선택항목 일시정지')
+        pause_btn = QPushButton(
+            QIcon(absp('res/pause.svg')), ' 선택항목 일시정지')
         pause_btn.clicked.connect(self.actions.pause_download)
 
-        stop_btn = QPushButton(QIcon(absp('res/stop.svg')), ' 목록에서 제거')
+        stop_btn = QPushButton(
+            QIcon(absp('res/stop.svg')), ' 목록에서 제거')
         stop_btn.clicked.connect(self.actions.stop_download)
 
         # Add buttons to Horizontal Layout

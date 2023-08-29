@@ -17,7 +17,7 @@
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview-1fichier-site.png"></img>
 </p>
 <p align="center">
-  <b>브라우저에서 1fichier.com 다운로드 링크(URL)를 복사</b>
+  <b>브라우저에서 1fichier.com 다운로드 링크(URL)를 복사해서 입력</b>
 </p>
 <br/>
 <br/>
@@ -25,7 +25,7 @@
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview-ouo-shortlink.png"></img>
 </p>
 <p align="center">
-  <b>브라우저에서 ouo.io 단축 링크(URL)를 바로 복사해서 입력하는 경우, 자동으로 캡챠 우회 (0.2.2 개발완료,빌드 수정 후 배포 예정)</b>
+  <b>브라우저에서 ouo.io 단축 링크(URL)를 바로 복사해서 입력하는 경우, 자동으로 reCAPTCHA 우회 처리</b>
 </p>
 <br/>
 <br/>
@@ -74,18 +74,17 @@ _여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 
 - 영문 GUI 한글화 진행 및 GUI 아이콘 컬러의 가독성 개선
 - 프로그램이 기본으로 제공하는 기본 프록시 목록의 변경
-- pyinstaller로 쉽게 빌드
-  (단일 파일의 `exe`로 빌드하도록 개선 중)
+- PyInstaller로 쉽게 빌드 (단일 파일의 `exe`로 빌드)
   <br/>
   <br/>
 
 ## 🙀 윈도우가 아닌 환경에서 실행
 
 개발을 위해, 또는 리눅스나 맥에서 파이썬을 통해 직접 GUI를 실행하는 경우 프로젝트 폴더에서 아래와 같이 실행이 가능합니다.
-현재 종속성은 단 3가지 뿐이지만 파이썬 3.7 버전 기준으로 진행해야 문제가 없습니다.
+현재 종속성은 몇가지 안되지만 파이썬 3.11 버전 기준으로 진행해야 문제가 없습니다.
 
 ```
-python 1fichier-dl/1ficher-dl-kr.py
+python 1fichier-dl-kr.py
 ```
 
 <br/>
@@ -93,14 +92,14 @@ python 1fichier-dl/1ficher-dl-kr.py
 
 ## 😾 PyInstaller를 이용한 윈도우 exe 빌드
 
-`Legacy` 프로젝트를 윈도우 프로그램으로 빌드하기 위해 `Python v3.7` 버전을 이용했습니다.
+`Legacy` 프로젝트를 윈도우 프로그램으로 빌드하기 위해 `Python v3.11` 버전을 이용했습니다.
 프로젝트 폴더에서 `requirements.txt` 를 설치하고 직접 빌드도 가능합니다.
 
 ```
-pyinstaller --windowed --noconsole --clean --icon=./1fichier-dl/res/ico.ico --add-data "1fichier-dl/res/*.*;res/" ./1fichier-dl/1ficher-dl-kr.py
+pyinstaller --windowed --noconsole --noconfirm --clean --hiddenimport=_cffi_backend --additional-hooks-dir=. --icon=core/gui/res/ico.ico --paths "[파이썬_Lib_경로]" --add-data "core/gui/res/*.*;res/" ./1fichier-dl-kr.py
 ```
 
-`--onefile` 옵션 사용시 캐쉬경로가 망가지기 때문에 폴더 구조로 동일하게 빌드합니다.
+`--onefile` 옵션 사용시 여전히 문제가 되는 경우가 있어 제외하고 폴더 구조로 빌드합니다.
 
 `PyInstaller`를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 경우 사용하는 위 명령어의 예시를 참고해보세요.
 <br/>
@@ -112,4 +111,4 @@ pyinstaller --windowed --noconsole --clean --icon=./1fichier-dl/res/ico.ico --ad
 - 윈도우 프로그램의 아이콘은 [svgrepo](https://www.svgrepo.com/)에서 무료 아이콘을 제공합니다.
 - 무료 `https` 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트 외 다수 사용
 - 1Fichier-dl 프로젝트의 제작자는 `manuGMG`이며, 개선판을 만든 [Leinad4Mind](https://github.com/Leinad4Mind/1fichier-dl) 의 `v0.2.0` 버전 프로젝트에서 분기
-- 링크 복사 불편함을 줄이기 위해 ouo.io 단축 URL의 경우 캡챠를 우회하는 [xcscxr](https://github.com/xcscxr) 의 [ouo-bypass](https://github.com/xcscxr/ouo-bypass) 프로젝트 적용
+- 링크 복사시 불편함을 줄이기 위해 `ouo.io` 단축 URL의 경우 캡챠를 우회하는 [xcscxr](https://github.com/xcscxr) 의 [ouo-bypass](https://github.com/xcscxr/ouo-bypass) 프로젝트 적용

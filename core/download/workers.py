@@ -1,5 +1,6 @@
 import os
 import sys
+
 from .download import *
 from PyQt5.QtCore import Qt, QObject, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QStandardItem
@@ -125,9 +126,10 @@ class DownloadWorker(QRunnable):
         # Default settings
         self.timeout = 30
 
-        """ Get absolute path to resource, works for dev and for PyInstaller """
+        # 기본 다운로드 경로는 프로그램 경로
         self.dl_directory = getattr(
             sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+
         self.proxy_settings = None
 
         # Override defaults
