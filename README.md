@@ -74,7 +74,9 @@ _여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 
 - 영문 GUI 한글화 진행 및 GUI 아이콘 컬러의 가독성 개선
 - 프로그램이 기본으로 제공하는 기본 프록시 목록의 변경
-- PyInstaller로 쉽게 빌드 (단일 파일의 `exe`로 빌드)
+- PyInstaller로 더욱 쉽게 빌드 (단일 파일의 `exe`로 빌드 진행중)
+- 프록시 우회의 경우 상태 항목에 현재 시도 중인 프록시 서버의 주소 표기
+- 링크 복사 시 번거로운 ouo.io의 `reCAPTCHA` 우회 적용
   <br/>
   <br/>
 
@@ -99,9 +101,13 @@ python 1fichier-dl-kr.py
 pyinstaller --windowed --noconsole --noconfirm --clean --hiddenimport=_cffi_backend --additional-hooks-dir=. --icon=core/gui/res/ico.ico --paths "[파이썬_Lib_경로]" --add-data "core/gui/res/*.*;res/" ./1fichier-dl-kr.py
 ```
 
-`--onefile` 옵션 사용시 여전히 문제가 되는 경우가 있어 제외하고 폴더 구조로 빌드합니다.
+`--onefile` 옵션을 사용하고 싶으신가요? 그러나 여전히 문제가 되는 경우가 있어 제외하고 있습니다.
 
-`PyInstaller`를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 경우 사용하는 위 명령어의 예시를 참고해보세요.
+더욱 깔끔한 폴더 구조를 위해 `onefile` 빌드를 목표로 수정 중입니다만, 속도와 파일 기본 저장 경로 쪽에 문제가 있어 아직까진 폴더 구조로 `build`하고 있습니다.
+
+`PyInstaller`를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 경우 위 명령어의 예시를 참고해보세요.
+`paths` 항목의 파이썬 `Lib` 경로는 conada 사용시 `env` 경로의 하위가 되겠습니다.
+
 <br/>
 <br/>
 
@@ -111,4 +117,4 @@ pyinstaller --windowed --noconsole --noconfirm --clean --hiddenimport=_cffi_back
 - 윈도우 프로그램의 아이콘은 [svgrepo](https://www.svgrepo.com/)에서 무료 아이콘을 제공합니다.
 - 무료 `https` 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트 외 다수 사용
 - 1Fichier-dl 프로젝트의 제작자는 `manuGMG`이며, 개선판을 만든 [Leinad4Mind](https://github.com/Leinad4Mind/1fichier-dl) 의 `v0.2.0` 버전 프로젝트에서 분기
-- 링크 복사시 불편함을 줄이기 위해 `ouo.io` 단축 URL의 경우 캡챠를 우회하는 [xcscxr](https://github.com/xcscxr) 의 [ouo-bypass](https://github.com/xcscxr/ouo-bypass) 프로젝트 적용
+- 링크 복사시 불편함을 줄이기 위해 `ouo.io` 단축 `URL`의 경우 `reCAPTCHA`를 우회하는 [xcscxr](https://github.com/xcscxr) 의 [ouo-bypass](https://github.com/xcscxr/ouo-bypass) 프로젝트 적용
