@@ -105,6 +105,7 @@
 현재 종속성은 몇가지 안되지만 파이썬 3.11 버전 기준으로 진행해야 문제가 없습니다.
 
 ```
+pip install -r requirements.txt
 python 1fichier-dl-kr.py
 ```
 
