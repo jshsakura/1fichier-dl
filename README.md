@@ -134,4 +134,4 @@ pyinstaller --windowed --noconsole --onefile --noconfirm --clean --hiddenimport=
 - 무료 `https` 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트 외 다수 사용
 - 1Fichier-dl 프로젝트의 제작자는 `manuGMG`이며, 개선판을 만든 [Leinad4Mind](https://github.com/Leinad4Mind/1fichier-dl) 의 `v0.2.0` 버전 프로젝트에서 분기
 - 링크 복사시 불편함을 줄이기 위해 `ouo.io` 단축 `URL`의 경우 `reCAPTCHA`를 우회하는 [xcscxr](https://github.com/xcscxr) 의 [ouo-bypass](https://github.com/xcscxr/ouo-bypass) 프로젝트 적용
-- 친절한 리팩토링 도우미 [ChatGPT](https://chat.openai.com/)
+- 친절한 리팩토링 도우미 [ChatGPT](https://chat.openai.com/)와 함께 작업
