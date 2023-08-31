@@ -1,11 +1,12 @@
 import os
 import sys
+import logging
 
 from .download import *
 from PyQt5.QtCore import Qt, QObject, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QStandardItem
 from .helpers import is_valid_link
-from .recapcha import ouo_bypass
+from .recapcha import *
 
 
 class WorkerSignals(QObject):
@@ -39,8 +40,8 @@ class FilterWorker(QRunnable):
             for link in links:
                 # 만약 단축 URL ouo_bypass인 경우 recapcha 우회
                 if 'ouo.io' in link:
-                    link = ouo_bypass(link)['bypassed_link']
-                    logging.debug('parsing url: ' + link)
+                    link = ouo_bypass(url=link)['bypassed_link']
+                    logging.debug('bypassed link: ' + str(link))
 
                 link = link.strip()
                 if is_valid_link(link):
@@ -126,9 +127,11 @@ class DownloadWorker(QRunnable):
         # Default settings
         self.timeout = 30
 
-        # 기본 다운로드 경로는 프로그램 경로
-        self.dl_directory = getattr(
-            sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        # 사용자의 다운로드 폴더 경로 설정
+        user_home_directory = os.path.expanduser("~")
+        self.dl_directory = os.path.join(user_home_directory, "Downloads")
+        # 아래는 프로그램 실행 경로
+        # self.dl_directory = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(download_folder)))
 
         self.proxy_settings = None
 
@@ -147,15 +150,18 @@ class DownloadWorker(QRunnable):
         self.dl_name = dl_name
 
         if dl_name and self.stopped:
-            try:
-                os.remove(self.dl_directory + '/' + dl_name)
-            except:
-                print(f'Failed to remove: {self.dl_directory}/{dl_name}')
+            logging.debug('Stop Download')
+            if (dl_name):
+                try:
+                    os.remove(self.dl_directory + '/' + str(dl_name))
+                    logging.debug(
+                        f'Temp File Remove: {self.dl_directory}/{dl_name}')
+                except:
+                    logging.debug(
+                        f'Failed to remove: {self.dl_directory}/{dl_name}')
 
-        if self.paused:
-            self.signals.update_signal.emit(
-                self.data, [None, None, '일시정지', '0 B/s'])
-        else:
+        if not self.paused:
+            logging.debug('Remove Download')
             if not dl_name:
                 self.complete = True
 
@@ -170,8 +176,9 @@ class DownloadWorker(QRunnable):
     def resume(self):
         if self.paused == True:
             self.paused = False
-            self.signals.unpause_signal.emit(
-                self.data, self.link, False, self.dl_name)
+            if isinstance(self.data, list):
+                self.signals.unpause_signal.emit(
+                    self.data, self.link, False, self.dl_name)
 
     def return_data(self):
         if not self.stopped and not self.complete:

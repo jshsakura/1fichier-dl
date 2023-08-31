@@ -9,7 +9,8 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 FIRST_RUN = True
-PROXY_TXT_API = 'https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/https_proxy_list.txt'
+SOCKS5_PROXY_TXT_API = 'https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/socks5_proxy_list.txt'
+HTTPS_PROXY_TXT_API = 'https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/https_proxy_list.txt'
 PLATFORM = os.name
 
 
@@ -32,26 +33,51 @@ def get_proxies(settings: str) -> list:
         r_proxies = requests.get(settings).text.splitlines()
     else:
         '''
-        배열 형태의 proxy 서버 목록
+        배열 형태의 socks5,https proxy 서버 목록
         '''
-        with requests.Session() as client:
-            proxy_arr_list = client.get(PROXY_TXT_API).text.splitlines()
-            for p in proxy_arr_list:
-                proxy_list = client.get(p).text.splitlines()
-                # 프록시 서버의 중복 제거
-                unique_proxy_list = list(set(proxy_list))
-                for item in unique_proxy_list:
-                    r_proxies.append(item)
+        return get_all_proxies()
 
-    proxies = []
-    for p in r_proxies:
-        # Require SSL error avoidance to bypass proxy
-        proxy_item = p
-        if not 'http' in proxy_item[0:4]:
-            proxy_item = f'http://{proxy_item}'
-        proxies.append({'https': proxy_item} if PLATFORM ==
-                       'nt' else {'https': f'{proxy_item.replace("http","https")}'})
-    return proxies
+
+def get_proxies_from_api(api_url):
+    proxy_list = []
+    try:
+        response = requests.get(api_url)
+        if response.status_code == 200:
+            proxy_list = response.text.splitlines()
+    except requests.RequestException as e:
+        logging.debug(f"Failed to get proxy list from {api_url}: {e}")
+    return proxy_list
+
+
+def process_proxy_list(proxy_list, proxy_type):
+    processed_proxies = []
+    for proxy in list(set(proxy_list)):
+        if proxy.startswith('https://raw.github'):
+            raw_proxy_list = requests.get(proxy).text.splitlines()
+            process_inner_proxy = []
+            for item in raw_proxy_list:
+                process_inner_proxy.append(item)
+            # 혹시 모를 중복 제거
+            unique_proxy_list = list(set(process_inner_proxy))
+            for item in unique_proxy_list:
+                processed_proxies.append({'https': f'{proxy_type}://{item}'})
+        elif proxy.startswith(proxy_type):
+            processed_proxies.append({'https': proxy})
+        else:
+            processed_proxies.append({'https': f'{proxy_type}://{proxy}'})
+    # 프록시 서버의 중복 제거
+    return processed_proxies
+
+
+def get_all_proxies():
+    all_proxies = []
+
+    socks5_proxy_list = get_proxies_from_api(SOCKS5_PROXY_TXT_API)
+    https_proxy_list = get_proxies_from_api(HTTPS_PROXY_TXT_API)
+
+    all_proxies.extend(process_proxy_list(socks5_proxy_list, 'socks5'))
+    all_proxies.extend(process_proxy_list(https_proxy_list, 'http'))
+    return all_proxies
 
 
 def convert_size(size_bytes: int) -> str:
@@ -98,6 +124,7 @@ def get_link_info(url: str) -> list:
         r.close()
         return [name, size]
     except:
+        logging.debug(__name__+' Exception')
         return None
 
 

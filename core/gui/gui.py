@@ -115,6 +115,7 @@ class GuiBehavior:
             self.cached_downloads = []
             logging.debug('No cached downloads.')
         except FileNotFoundError:
+            logging.debug('create New cache File.')
             self.cached_downloads = []
             create_file('app/cache')
 
@@ -130,6 +131,7 @@ class GuiBehavior:
             logging.debug('No settings found.')
         except FileNotFoundError:
             self.settings = None
+            logging.debug('Create New settings File.')
             create_file('app/settings')
 
     def resume_download(self):
@@ -153,25 +155,29 @@ class GuiBehavior:
             for i in reversed(selected_rows):
                 if i < len(self.download_workers):
                     self.download_workers[i].stop(i)
-                    self.download_workers.remove(self.download_workers[i])
+                    # Remove the download worker from the list
+                    del self.download_workers[i]
 
     def pause_download(self):
         '''
         Pause selected downloads.
         '''
         selected_rows = check_selection(self.gui.table)
-
         if selected_rows:
             for i in selected_rows:
                 if i < len(self.download_workers):
-                    self.download_workers[i].signals.update_signal.emit(
-                        self.download_workers[i].data, [None, None, '일시정지', '0 B/s'])
-                    self.download_workers[i].pause()
+                    update_data = [None, None, '일시정지', '0 B/s']
+                    # 리스트 타입인 경우에만 update_signal
+                    if isinstance(self.download_workers[i].data, list):
+                        self.download_workers[i].signals.update_signal.emit(
+                            self.download_workers[i].data, update_data)
+                        self.download_workers[i].pause()
 
     def add_links(self, state, cached_download=''):
         '''
         Calls FilterWorker()
         '''
+        logging.debug('Call add_links')
         worker = FilterWorker(
             self, cached_download, (self.gui.password.text() if not cached_download else ''))
 
@@ -211,9 +217,8 @@ class GuiBehavior:
         Update download data.
         items = [File Name, Size, Down Speed, Progress, Pass]
         '''
-        if data:
+        if data and isinstance(data, list) and isinstance(items, list):
             if not PyQt5.sip.isdeleted(data[2]):
-
                 for i in range(len(items)):
                     if items[i] and isinstance(items[i], str):
                         data[i].setText(str(items[i]))
@@ -223,6 +228,8 @@ class GuiBehavior:
                         data[i].setValue(int(items[i]) * n)
                         # progress_bar float issue casting fix
                         data[i].setFormat("%.02f %%" % items[i])
+        # 링크 추가 후 버튼 재활성화
+        self.gui.add_links_complete()
 
     def set_dl_directory(self):
         file_dialog = QFileDialog(self.gui.settings)
@@ -247,12 +254,12 @@ class GuiBehavior:
     def save_settings(self):
         with open(abs_config('app/settings'), 'wb') as f:
             settings = []
-            settings.append(self.gui.dl_directory_input.text()
-                            )   # Download Directory - 0
+            settings.append(self.gui.dl_directory_input.text())
+            # Download Directory - 0
             # Theme              - 1
             settings.append(self.gui.theme_select.currentIndex())
-            settings.append(self.gui.timeout_input.value()
-                            )       # Timeout            - 2
+            settings.append(self.gui.timeout_input.value())
+            # Timeout            - 2
             # Proxy Settings     - 3
             settings.append(self.gui.proxy_settings_input.text())
             pickle.dump(settings, f)
@@ -289,7 +296,6 @@ class Gui:
         # Init GuiBehavior()
         self.actions = GuiBehavior(self)
         self.app_name = '1Fichier 다운로더 v0.2.1'
-
         # Create App
         app = QApplication(sys.argv)
         app.setWindowIcon(QIcon(absp('res/ico.ico')))
@@ -403,9 +409,9 @@ class Gui:
         layout.addWidget(self.password)
 
         # Add links
-        add_btn = QPushButton('다운로드 목록에 추가')
-        add_btn.clicked.connect(self.actions.add_links)
-        layout.addWidget(add_btn)
+        self.add_btn = QPushButton('다운로드 목록에 추가')
+        self.add_btn.clicked.connect(self.add_to_download_list)
+        layout.addWidget(self.add_btn)
 
         self.add_links.setMinimumSize(300, 200)
         widget.setLayout(layout)
@@ -544,3 +550,27 @@ class Gui:
         about_layout.addWidget(github_btn, 1, 0)
         about_layout.addWidget(text, 1, 1)
         about_settings.setLayout(about_layout)
+
+    def add_links_complete(self):
+        # 작업이 완료되면 버튼의 상태를 변경합니다.
+        self.add_btn.setText("다운로드 목록에 추가")
+        self.add_btn.setEnabled(True)
+        # 링크 입력창 초기화
+        self.links.setEnabled(True)
+        self.password.setEnabled(True)
+        self.links.clear()
+
+    def add_to_download_list(self):
+        # '다운로드 목록에 추가' 버튼을 비활성화합니다.
+        self.add_btn.setText("다운로드 목록에 추가 중...")
+        self.add_btn.setEnabled(False)
+
+        # 입력된 링크를 가져와서 리스트로 변환합니다.
+        links_text = self.links.toPlainText()
+        download_links = links_text.split('\n')
+        self.links.setDisabled(True)
+        self.password.setDisabled(True)
+        for link in download_links:
+            if link.strip():  # 빈 줄이 아닌 경우에만 추가합니다.
+                # 'add_links' 메서드를 사용하여 다운로드 링크를 추가합니다.
+                self.actions.add_links(link)

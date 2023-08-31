@@ -12,4 +12,5 @@ if __name__ == '__main__':
         logger = logging.getLogger(__name__)
         gui.Gui()
     except Exception as e:
+        logger.debug(__name__+' Exception')
         logger.exception(e)
