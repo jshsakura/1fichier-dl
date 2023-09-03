@@ -103,19 +103,18 @@ _여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 - 링크 복사 시 번거로운 ouo.io의 `reCAPTCHA` 우회 적용
 - 다운로드 링크를 추가시 동작하는 `UX` 의 개선 (로딩 화면 및 중복입력 방지)
 - 클립보드에서 바로 다운로드로 이어지는 버튼 추가
-- 동시 프록시 다운로드 지원 (기본 3개, 설정 가능)
+- 멀티 쓰레드를 이용한 동시 프록시 다운로드 지원 (기본 3개, 설정에서 변경 가능)
   <br/>
   <br/>
 
 ## 😹 앞으로 개선할 사항
 
 - `https` 프록시를 적용한 반복 `requests`로 인한 속도저하 개선 (sock5 테스트 중)
-- `PyInstaller`로 빌드시 단일 파일의 `exe` 구조로 수정 (백신 오진 최소화 및 파일 Temp로 정리)
 - 다운로드 속도가 `100kb` 등으로 느린 프록시 서버에 붙었을 경우 타 프록시로 자동으로 변경
+- 동시 다운로드 시 `Threading` 이 아닌 Asyncio를 이용한 비동기 다운로드 지원 (속도 증가)
 - 기본사양인 `1ficher` 외에 유사한 타 사이트들의 프로그램 지원 확대
-
-<br/>
-<br/>
+  <br/>
+  <br/>
 
 ## 🙀 윈도우가 아닌 환경에서 실행
 
@@ -155,4 +154,4 @@ pyinstaller --windowed --noconsole --onefile --noconfirm --clean --hiddenimport=
 - 무료 `https` 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트 외 다수 사용
 - 1Fichier-dl 프로젝트의 제작자는 `manuGMG`이며, 개선판을 만든 [Leinad4Mind](https://github.com/Leinad4Mind/1fichier-dl) 의 `v0.2.0` 버전 프로젝트에서 분기
 - 링크 복사시 불편함을 줄이기 위해 `ouo.io` 단축 `URL`의 경우 `reCAPTCHA`를 우회하는 [xcscxr](https://github.com/xcscxr) 의 [ouo-bypass](https://github.com/xcscxr/ouo-bypass) 프로젝트 적용
-- 친절한 리팩토링 도우미 [ChatGPT](https://chat.openai.com/)와 함께 작업
+- 친절한 도우미, 의외로 멍청한 [ChatGPT](https://chat.openai.com/)의 코드 리팩토링 서포트.
