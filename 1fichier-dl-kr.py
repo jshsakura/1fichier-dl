@@ -27,6 +27,8 @@ if __name__ == '__main__':
         logger = logging.getLogger(__name__)
         gui.Gui()
     except Exception as e:
+        # 예외 발생 시 handle_exit() 호출
+        gui.Gui().actions.handle_exit()
         logger = logging.getLogger(__name__)  # Move logger definition here
         logger.debug(__name__+' Exception')
         logger.exception(e)
