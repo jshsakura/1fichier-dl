@@ -144,6 +144,8 @@ pyinstaller --windowed --noconsole --onefile --noconfirm --clean --hiddenimport=
 `PyInstaller`를 이용해 윈도우 프로그램 `exe` 형식으로 빌드하는 경우 위 명령어의 예시를 참고해보세요.
 `paths` 항목의 파이썬 `Lib` 경로는 conada 사용시 `env` 경로의 하위가 되겠습니다.
 
+엉뚱하게도 `PyInstaller`의 고질적인 바이러스 오진 문제로 직접 `PyInstaller` 소스를 다운 받아 `python ./waf distclean all` 로 기존 빌드환경을 초기화 한 뒤 `pip install .` 로 폴더 내에서 `setup.py`를 통해 직접 설치해야합니다.
+
 <br/>
 <br/>
 
