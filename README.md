@@ -17,7 +17,7 @@
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview-1fichier-site.png"></img>
 </p>
 <p align="center">
-  <b>브라우저에서 1fichier.com 다운로드 링크(URL)를 복사해서 입력</b>
+  <b>브라우저에서 1fichier.com 다운로드 링크(URL)를 복사해서 입력할 수 있습니다.</b>
 </p>
 <br/>
 <br/>
@@ -30,11 +30,29 @@
 <br/>
 <br/>
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview.png"></img>
+  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview0.png"></img>
 </p>
 
 <p align="center">
-  <b>1fichier 다운로더에 주소를 입력하는 것으로 간단하게 동작.</b>
+  <b>1fichier 다운로더 프로그램에 1fichier 링크 주소를 입력하는 것으로 간단하게 동작.</b>
+</p>
+<br/>
+<br/>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview_settings0.png"></img>
+</p>
+
+<p align="center">
+  <b>클립보드에서 복사하거나 여러개의 프록시 서버를 통해 자동으로 대기시간 우회 다운로드.</b>
+</p>
+<br/>
+<br/>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview_settings1.png"></img>
+</p>
+
+<p align="center">
+  <b>여러개의 동시 다운로드를 지원하고 환경에 따라 늘리거나 줄일 수 있습니다.</b>
 </p>
 <br/>
 <br/>
@@ -48,6 +66,8 @@
 ⭐ 설정 > 연결 메뉴에서 URL을 통해 사용자가 프록시 목록을 직접 입력할 수 있습니다. (기본 프록시 대체)
 
 ⭐ `1ficher` 링크 외에도 `ouo.io` 등의 단축 `URL`을 직접 입력시 `reCAPTCHA`를 우회한 자동 링크 추가
+
+⭐ `Threading` 을 이용한 동시 프록시 다운로드 지원 (기본 3개 실험적)
 
 ⭐ 기본 다운로드 폴더 경로는 윈도우의 `다운로드` 폴더입니다.
 
@@ -81,13 +101,14 @@ _여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 - 프록시 우회의 경우 `상태` 항목에 현재 시도 중인 프록시 서버 `IP:PORT` 표기
 - 사용자가 현재 진행 상황을 쉽게 볼 수 있도록 `진행률 %` 소숫점 표기 추가
 - 링크 복사 시 번거로운 ouo.io의 `reCAPTCHA` 우회 적용
-
-<br/>
-<br/>
+- 다운로드 링크를 추가시 동작하는 `UX` 의 개선 (로딩 화면 및 중복입력 방지)
+- 클립보드에서 바로 다운로드로 이어지는 버튼 추가
+- 동시 프록시 다운로드 지원 (기본 3개, 설정 가능)
+  <br/>
+  <br/>
 
 ## 😹 앞으로 개선할 사항
 
-- 다운로드 링크를 추가해도 그저 멍때리는 것처럼 보이는 끔찍한 `UX` 개선 (완료)
 - `https` 프록시를 적용한 반복 `requests`로 인한 속도저하 개선 (sock5 테스트 중)
 - `PyInstaller`로 빌드시 단일 파일의 `exe` 구조로 수정 (백신 오진 최소화 및 파일 Temp로 정리)
 - 다운로드 속도가 `100kb` 등으로 느린 프록시 서버에 붙었을 경우 타 프록시로 자동으로 변경

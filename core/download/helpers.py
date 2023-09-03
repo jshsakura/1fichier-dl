@@ -1,4 +1,5 @@
 import logging
+import random
 import requests
 import math
 import os
@@ -9,33 +10,25 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 FIRST_RUN = True
-SOCKS5_PROXY_TXT_API = 'https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/socks5_proxy_list.txt'
+SOCKS5_PROXY_TXT_API = 'https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/socks5_proxy_list.txt'
 HTTPS_PROXY_TXT_API = 'https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/https_proxy_list.txt'
 PLATFORM = os.name
 
 
-def get_proxies(settings: str) -> list:
-    '''
-    Get proxies (str) from API.
-    '''
-    global FIRST_RUN
-
-    if FIRST_RUN:
-        FIRST_RUN = False
-        return [None]
-
-    r_proxies = []
-
+def get_proxies(settings):
     '''
     저장된 Proxy 설정이 있는 경우 기본 프록시 세팅을 무시하고 적용
     '''
+
     if settings:
         r_proxies = requests.get(settings).text.splitlines()
     else:
         '''
         배열 형태의 socks5,https proxy 서버 목록
         '''
-        return get_all_proxies()
+        r_proxies = get_all_proxies()
+
+    return r_proxies
 
 
 def get_proxies_from_api(api_url):
@@ -52,6 +45,9 @@ def get_proxies_from_api(api_url):
 def process_proxy_list(proxy_list, proxy_type):
     processed_proxies = []
     for proxy in list(set(proxy_list)):
+        proxy_parts = proxy.split(':')
+        proxy_without_country = proxy_parts[0] + ':' + proxy_parts[1]
+
         if proxy.startswith('https://raw.github'):
             raw_proxy_list = requests.get(proxy).text.splitlines()
             process_inner_proxy = []
@@ -61,10 +57,13 @@ def process_proxy_list(proxy_list, proxy_type):
             unique_proxy_list = list(set(process_inner_proxy))
             for item in unique_proxy_list:
                 processed_proxies.append({'https': f'{proxy_type}://{item}'})
-        elif proxy.startswith(proxy_type):
-            processed_proxies.append({'https': proxy})
+
+        elif proxy_without_country.startswith(proxy_type):
+            processed_proxies.append({'https': proxy_without_country})
         else:
-            processed_proxies.append({'https': f'{proxy_type}://{proxy}'})
+            processed_proxies.append(
+                {'https': f'{proxy_type}://{proxy_without_country}'})
+
     # 프록시 서버의 중복 제거
     return processed_proxies
 
@@ -77,6 +76,8 @@ def get_all_proxies():
 
     all_proxies.extend(process_proxy_list(socks5_proxy_list, 'socks5'))
     all_proxies.extend(process_proxy_list(https_proxy_list, 'http'))
+    # 무작위로 섞기
+    random.shuffle(all_proxies)
     return all_proxies
 
 

@@ -1,7 +1,7 @@
 PyQt5==5.15.9
 lxml==4.9.3
-requests
 curl_cffi==0.5.7
-beautifulsoup4
 urllib3==2.0.4
+requests
+beautifulsoup4
 #pyinstaller==5.13.0 # python -m pip uninstall pyinstalle, python ./waf all --target-arch=64bit

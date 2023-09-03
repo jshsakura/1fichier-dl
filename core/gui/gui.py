@@ -1,21 +1,25 @@
 import sys
+import queue
 import logging
 import pickle
 import os
+import time
 import webbrowser
 import PyQt5.sip
 from ..download.workers import FilterWorker, DownloadWorker
 from .themes import dark_theme
 from PyQt5.QtCore import Qt, QThreadPool
-from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem, QPixmap
+from PyQt5.QtSvg import QSvgWidget
+from PyQt5.QtGui import QIcon, QStandardItemModel, QPixmap
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QPushButton, QSpinBox, QWidget, QMessageBox,
                              QTableView, QHeaderView, QHBoxLayout,
                              QPlainTextEdit, QVBoxLayout, QAbstractItemView,
                              QAbstractScrollArea, QLabel, QLineEdit,
                              QFileDialog, QProgressBar, QStackedWidget,
-                             QFormLayout, QListWidget, QComboBox)
+                             QFormLayout, QListWidget, QComboBox, QSizePolicy)
 import tkinter as tk
+proxy_queue = queue.Queue()
 
 
 def absp(path):
@@ -95,7 +99,7 @@ class GuiBehavior:
         self.filter_thread = QThreadPool()
         self.download_thread = QThreadPool()
         # Limits concurrent downloads to 1.
-        self.download_thread.setMaxThreadCount(1)
+        self.download_thread.setMaxThreadCount(3)
         self.download_workers = []
         self.gui = gui
         self.handle_init()
@@ -126,6 +130,9 @@ class GuiBehavior:
         try:
             with open(abs_config('app/settings'), 'rb') as f:
                 self.settings = pickle.load(f)
+                thread_count = self.settings[4]
+                self.download_thread.setMaxThreadCount(int(thread_count))
+                logging.debug('Now Settings Thread Count:'+str(thread_count))
         except EOFError:
             self.settings = None
             logging.debug('No settings found.')
@@ -133,6 +140,25 @@ class GuiBehavior:
             self.settings = None
             logging.debug('Create New settings File.')
             create_file('app/settings')
+        except IndexError:
+            # settings 리스트의 네 번째 요소가 없을 때 기본값 3 사용
+            self.settings = None
+            thread_count = 3
+            self.download_thread.setMaxThreadCount(thread_count)
+
+    def show_loading_overlay(self):
+        '''
+        Show the loading overlay.
+        '''
+        if self.gui:
+            self.gui.show_loading_overlay()
+
+    def hide_loading_overlay(self):
+        '''
+        Show the loading overlay.
+        '''
+        if self.gui:
+            self.gui.hide_loading_overlay()
 
     def resume_download(self):
         '''
@@ -166,7 +192,7 @@ class GuiBehavior:
         if selected_rows:
             for i in selected_rows:
                 if i < len(self.download_workers):
-                    update_data = [None, None, '일시정지', '0 B/s']
+                    update_data = [None, None, '일시정지', None, '0 B/s']
                     # 리스트 타입인 경우에만 update_signal
                     if isinstance(self.download_workers[i].data, list):
                         self.download_workers[i].signals.update_signal.emit(
@@ -178,6 +204,8 @@ class GuiBehavior:
         Calls FilterWorker()
         '''
         logging.debug('Call add_links')
+        # 로딩 오버레이 표시
+        self.show_loading_overlay()
         worker = FilterWorker(
             self, cached_download, (self.gui.password.text() if not cached_download else ''))
 
@@ -193,7 +221,7 @@ class GuiBehavior:
         if append_row:
             self.gui.table_model.appendRow(row)
             index = self.gui.table_model.index(
-                self.gui.table_model.rowCount()-1, 4)
+                self.gui.table_model.rowCount()-1, 5)
             progress_bar = QProgressBar()
             progress_bar.setValue(progress)
             progress_bar.setGeometry(200, 150, 200, 30)
@@ -202,15 +230,19 @@ class GuiBehavior:
             # setting maximum value for 2 decimal points
             progress_bar.setMaximum(100 * n)
             self.gui.table.setIndexWidget(index, progress_bar)
-            row[4] = progress_bar
+            row[5] = progress_bar
 
         worker = DownloadWorker(
             link, self.gui.table_model, row, self.settings, dl_name)
+
         worker.signals.update_signal.connect(self.update_receive_signal)
         worker.signals.unpause_signal.connect(self.download_receive_signal)
 
         self.download_thread.start(worker)
         self.download_workers.append(worker)
+        self.hide_loading_overlay()
+        # 링크 추가 후 버튼 재활성화
+        self.gui.add_links_complete()
 
     def update_receive_signal(self, data, items):
         '''
@@ -225,11 +257,9 @@ class GuiBehavior:
                     if items[i] and not isinstance(items[i], str):
                         # setting the value by multiplying it to 100
                         n = 100
-                        data[i].setValue(int(items[i]) * n)
                         # progress_bar float issue casting fix
+                        data[i].setValue(int(items[i]) * n)
                         data[i].setFormat("%.02f %%" % items[i])
-        # 링크 추가 후 버튼 재활성화
-        self.gui.add_links_complete()
 
     def set_dl_directory(self):
         file_dialog = QFileDialog(self.gui.settings)
@@ -262,6 +292,8 @@ class GuiBehavior:
             # Timeout            - 2
             # Proxy Settings     - 3
             settings.append(self.gui.proxy_settings_input.text())
+            # 멀티 다운로드 갯수
+            settings.append(self.gui.thread_input.value())
             pickle.dump(settings, f)
             self.settings = settings
         self.gui.settings.hide()
@@ -294,15 +326,18 @@ class GuiBehavior:
 class Gui:
     def __init__(self):
         # Init GuiBehavior()
-        self.actions = GuiBehavior(self)
-        self.app_name = '1Fichier 다운로더 v0.2.1'
+        self.app_name = '1Fichier 다운로더'
+
         # Create App
         app = QApplication(sys.argv)
         app.setWindowIcon(QIcon(absp('res/ico.ico')))
         app.setStyle('Fusion')
-        app.aboutToQuit.connect(self.actions.handle_exit)
-
         self.app = app
+
+        # Initialize self.main
+        self.main_init()
+        self.actions = GuiBehavior(self)
+        app.aboutToQuit.connect(self.actions.handle_exit)
 
         # Create Windows
         self.main_win()
@@ -316,7 +351,7 @@ class Gui:
 
         sys.exit(app.exec_())
 
-    def main_win(self):
+    def main_init(self):
         # Define Main Window
         self.main = QMainWindow()
         self.main.setWindowTitle(self.app_name)
@@ -326,14 +361,16 @@ class Gui:
         # Create Grid
         grid = QGridLayout()
 
+        # download_clipboard_btn 생성 및 설정
+        download_clipboard_btn = QPushButton(
+            QIcon(absp('res/clipboard.svg')), ' 클립보드에서 추가')
+        download_clipboard_btn.clicked.connect(self.add_links_clipboard)
+
         # Top Buttons
         download_btn = QPushButton(
             QIcon(absp('res/download.svg')), ' 다운로드 주소 추가')
         download_btn.clicked.connect(lambda: self.add_links.show(
         ) if not self.add_links.isVisible() else self.add_links.raise_())
-
-        download_clipboard_btn = QPushButton(
-            QIcon(absp('res/clipboard.svg')), ' 클립보드 추가')
 
         settings_btn = QPushButton(
             QIcon(absp('res/settings.svg')), ' 설정')
@@ -342,7 +379,7 @@ class Gui:
 
         # Table
         self.table = QTableView()
-        headers = ['파일명', '크기', '상태',
+        headers = ['파일명', '크기', '상태', '프록시 서버',
                    '전송 속도', '진행률', '비밀번호']
         self.table.setSizeAdjustPolicy(
             QAbstractScrollArea.AdjustToContentsOnFirstShow)
@@ -356,37 +393,76 @@ class Gui:
         self.table.setModel(self.table_model)
 
         # Append widgets to grid
-        grid.addWidget(download_btn, 0, 0)
+        grid.addWidget(download_clipboard_btn, 0, 0)
+        grid.addWidget(download_btn, 0, 1)
         # grid.addWidget(download_clipboard_btn, 0, 1)
-        grid.addWidget(settings_btn, 0, 1)
-        grid.addWidget(self.table, 1, 0, 1, 2)
-
-        # Bottom Buttons
-        resume_btn = QPushButton(
-            QIcon(absp('res/resume.svg')), ' 선택항목 시작')
-        resume_btn.clicked.connect(self.actions.resume_download)
-
-        pause_btn = QPushButton(
-            QIcon(absp('res/pause.svg')), ' 선택항목 일시정지')
-        pause_btn.clicked.connect(self.actions.pause_download)
-
-        stop_btn = QPushButton(
-            QIcon(absp('res/stop.svg')), ' 목록에서 제거')
-        stop_btn.clicked.connect(self.actions.stop_download)
+        grid.addWidget(settings_btn, 0, 2)
+        grid.addWidget(self.table, 1, 0, 1, 3)
 
         # Add buttons to Horizontal Layout
         hbox = QHBoxLayout()
-        hbox.addWidget(resume_btn)
-        hbox.addWidget(pause_btn)
-        hbox.addWidget(stop_btn)
+        # Bottom Buttons
+        self.main.resume_btn = QPushButton(
+            QIcon(absp('res/resume.svg')), ' 선택항목 시작')
+        self.main.pause_btn = QPushButton(
+            QIcon(absp('res/pause.svg')), ' 선택항목 일시정지')
+        self.main.stop_btn = QPushButton(
+            QIcon(absp('res/stop.svg')), ' 목록에서 제거')
+        hbox.addWidget(self.main.resume_btn)
+        hbox.addWidget(self.main.pause_btn)
+        hbox.addWidget(self.main.stop_btn)
 
         self.main.setWindowFlags(self.main.windowFlags()
                                  & Qt.CustomizeWindowHint)
 
-        grid.addLayout(hbox, 2, 0, 1, 2)
+        grid.addLayout(hbox, 2, 0, 1, 3)
         widget.setLayout(grid)
-        self.main.resize(670, 415)
+        self.main.resize(720, 415)
+        # Set size policies for the table
+        self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # 로딩 오버레이 위젯 생성
+        self.main.loading_overlay = QWidget(self.main)
+        self.main.loading_overlay.setGeometry(
+            0, 0, self.main.width(), self.main.height())
+        self.main.loading_overlay.setStyleSheet(
+            "background-color: rgba(255, 255, 255, 0.6);")
+        self.main.loading_overlay.setVisible(False)
+
+        # SVG 이미지를 로딩 오버레이 위젯에 추가
+        svg_widget = QSvgWidget(absp('res/loading_image.svg'))
+        svg_widget.setGeometry(0, 0, 100, 100)  # 중앙에 표시하려면 위치와 크기 조정이 필요합니다.
+        svg_layout = QVBoxLayout(self.main.loading_overlay)
+        svg_layout.addWidget(svg_widget)
+        svg_layout.setAlignment(Qt.AlignCenter)
+
         self.main.show()
+
+    def main_win(self):
+        self.main.resume_btn.clicked.connect(self.actions.resume_download)
+        self.main.pause_btn.clicked.connect(self.actions.pause_download)
+        self.main.stop_btn.clicked.connect(self.actions.stop_download)
+
+    # 클립보드의 주소를 가져와서 add_links로 전달하는 메서드
+    def add_links_clipboard(self):
+        clipboard_text = getClipboardText()
+        if clipboard_text:
+            lines = clipboard_text.split('\n')
+            if lines:
+                self.links.setPlainText(lines[0])
+            else:
+                self.links.setPlainText(clipboard_text)
+            self.add_to_download_list()
+
+    # 로딩 오버레이를 활성화하는 메서드
+    def show_loading_overlay(self):
+        if self.main:
+            self.main.loading_overlay.setVisible(True)
+
+    # 로딩 오버레이를 비활성화하는 메서드
+    def hide_loading_overlay(self):
+        if self.main:
+            self.main.loading_overlay.setVisible(False)
 
     def add_links_win(self):
         # Define Add Links Win
@@ -415,9 +491,6 @@ class Gui:
 
         self.add_links.setMinimumSize(300, 200)
         widget.setLayout(layout)
-
-    # def add_links_clipboard(self):
-    #     self.links = getClipboardText()
 
     def settings_win(self):
         # Define Settings Win
@@ -514,6 +587,16 @@ class Gui:
 
         form_layout_c.addRow(self.proxy_settings_input)
 
+        # Timeout
+        form_layout_c.addRow(QLabel('동시 프록시 다운로드 갯수 (재시작 필요):'))
+        self.thread_input = QSpinBox()
+        if self.actions.settings is not None:
+            self.thread_input.setValue(self.actions.settings[4])
+        else:
+            self.thread_input.setValue(3)
+
+        form_layout_c.addRow(self.thread_input)
+
         # Bottom buttons
         save_settings_c = QPushButton('저장')
         save_settings_c.clicked.connect(self.actions.save_settings)
@@ -570,7 +653,8 @@ class Gui:
         download_links = links_text.split('\n')
         self.links.setDisabled(True)
         self.password.setDisabled(True)
+
         for link in download_links:
             if link.strip():  # 빈 줄이 아닌 경우에만 추가합니다.
-                # 'add_links' 메서드를 사용하여 다운로드 링크를 추가합니다.
+                # 'add_links'를 사용, 다운로드 링크를 추가합니다.
                 self.actions.add_links(link)

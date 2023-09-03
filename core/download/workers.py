@@ -1,12 +1,16 @@
 import os
+import queue
 import sys
 import logging
-
+import threading
 from .download import *
 from PyQt5.QtCore import Qt, QObject, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QStandardItem
 from .helpers import is_valid_link
 from .recapcha import *
+
+# Create a lock to synchronize access to the proxy list
+proxy_queue = queue.Queue()
 
 
 class WorkerSignals(QObject):
@@ -20,6 +24,7 @@ class FilterWorker(QRunnable):
     def __init__(self, actions, cached_download='', password=''):
         super(FilterWorker, self).__init__()
         self.links = actions.gui.links
+        self.gui = actions.gui
         self.cached_downloads = actions.cached_downloads
         self.cached_download = cached_download
         self.signals = WorkerSignals()
@@ -36,8 +41,8 @@ class FilterWorker(QRunnable):
             self.valid_links = [self.links]
         else:
             links = self.links.toPlainText().splitlines()
-
             for link in links:
+                logging.debug('valid_links:'+str(link.strip()))
                 # 만약 단축 URL ouo_bypass인 경우 recapcha 우회
                 if 'ouo.io' in link:
                     link = ouo_bypass(url=link)['bypassed_link']
@@ -49,12 +54,16 @@ class FilterWorker(QRunnable):
                         link = f'https://{link}'
                     if '&' in link:
                         link = link.split('&')[0]
-
                     self.valid_links.append(link)
 
             if not self.valid_links:
                 self.signals.alert_signal.emit(
-                    '입력하신 다운로드 주소의 형식이 올바르지 않습니다.')
+                    '입력한 다운로드 주소의 형식이 올바르지 않습니다.')
+                self.gui.hide_loading_overlay()
+                # 링크 입력창 초기화
+                self.gui.add_btn.setEnabled(True)
+                self.gui.links.setEnabled(True)
+                self.gui.password.setEnabled(True)
 
         for link in self.valid_links:
             if '/dir/' in link:
@@ -63,7 +72,7 @@ class FilterWorker(QRunnable):
                 for f in folder:
                     link = f['link']
                     info = [f['파일명'], convert_size(int(f['size']))]
-                    info.extend(['대기중', '0 B/s', ''])
+                    info.extend(['대기중', None, '0 B/s', ''])
                     row = []
 
                     for val in info:
@@ -88,7 +97,7 @@ class FilterWorker(QRunnable):
                 if info is not None:
                     is_private = True if info[0] == 'Private File' else False
                     info[0] = self.dl_name if self.dl_name else info[0]
-                    info.extend(['대기중', '0 B/s', ''])
+                    info.extend(['대기중', None, '0 B/s', ''])
                     row = []
 
                     for val in info:
@@ -121,9 +130,6 @@ class DownloadWorker(QRunnable):
         self.paused = self.stopped = self.complete = False
         self.dl_name = dl_name
 
-        # Proxies
-        self.proxies = []
-
         # Default settings
         self.timeout = 30
 
@@ -133,6 +139,7 @@ class DownloadWorker(QRunnable):
         # 아래는 프로그램 실행 경로
         # self.dl_directory = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(download_folder)))
 
+        # Proxies Settings
         self.proxy_settings = None
 
         # Override defaults
@@ -143,6 +150,25 @@ class DownloadWorker(QRunnable):
                 self.timeout = settings[2]
             if settings[3]:
                 self.proxy_settings = settings[3]
+
+        if proxy_queue.qsize() == 0:
+            # 큐가 비어있을 때만 프록시 로드
+            time.sleep(3)
+            self.load_proxies()
+
+        # Proxies
+        self.proxies = proxy_queue
+
+    def load_proxies(self):
+        global proxy_queue
+        proxies = get_proxies(settings=self.proxy_settings)
+        for proxy in proxies:
+            proxy_queue.put(proxy)
+
+    # 다운로드 작업을 스레드로 실행
+    def run(self):
+        download_thread = threading.Thread(target=self.download)
+        download_thread.start()
 
     @pyqtSlot()
     def run(self):
@@ -185,7 +211,7 @@ class DownloadWorker(QRunnable):
             data = []
             data.append(self.link)
             data.append(self.dl_name) if self.dl_name else data.append(None)
-            data.append(self.data[5].text()) if self.data[5].text(
+            data.append(self.data[6].text()) if self.data[6].text(
             ) != '비밀번호 없음' else data.append(None)
-            data.append(self.data[4].value())
+            data.append(self.data[5].value())
             return data
