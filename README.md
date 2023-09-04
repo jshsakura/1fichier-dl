@@ -38,6 +38,7 @@
 </p>
 <br/>
 <br/>
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview_settings0.png"></img>
 </p>
@@ -58,6 +59,10 @@
 <br/>
 
 ## 😼 주요 기능 소개
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview2.png"></img>
+</p>
 
 ⭐ 다운로드 `링크` 주소 입력만으로 다운로드 목록을 관리할 수 있으니 이젠 마음껏 걸어두고 주무셔도 좋습니다.
 
