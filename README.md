@@ -103,15 +103,15 @@ _여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 - 링크 복사 시 번거로운 ouo.io의 `reCAPTCHA` 우회 적용
 - 다운로드 링크를 추가시 동작하는 `UX` 의 개선 (로딩 화면 및 중복입력 방지)
 - `클립보드`에 복사해둔 `URL`을 바로 다운로드 할 수 있도록 바로가기 버튼 추가
-- 멀티 쓰레드를 이용한 동시 프록시 다운로드 지원 (기본 3개, 설정에서 변경 가능)
+- `멀티 쓰레드`를 이용한 동시 프록시 다운로드 지원 (기본 3개, 설정에서 변경 가능, 실험적)
   <br/>
   <br/>
 
 ## 😹 앞으로 개선할 사항
 
-- `https` 프록시를 적용한 반복 `requests`로 인한 속도저하 개선 (sock5 테스트 중)
-- 다운로드 속도가 `100kb` 등으로 느린 프록시 서버에 붙었을 경우 타 프록시로 자동으로 변경
-- 동시 다운로드 시 `Threading` 이 아닌 Asyncio를 이용한 비동기 다운로드 지원 (속도 증가)
+- `https` 프록시를 적용한 반복 `requests`로 인한 속도저하 개선 (`sock5` 프록시 테스트 중)
+- 다운로드 속도가 `100kb` 등으로 느린 프록시 서버에 붙었을 경우 타 프록시로 자동으로 변경 필요
+- 동시 다운로드 시 `Threading` 이 아닌 `Asyncio`를 이용한 비동기 다운로드 지원 (속도 증가)
 - 기본사양인 `1ficher` 외에 유사한 타 사이트들의 프로그램 지원 확대
   <br/>
   <br/>
@@ -151,7 +151,7 @@ pyinstaller --windowed --noconsole --onefile --noconfirm --clean --hiddenimport=
 
 ## 😽 무한한 감사를 드립니다. 🫶
 
-- 모든 아이콘은 멋진 무료 아이콘을 제공하는 [Feather](https://feathericons.com/)를 이용합니다.
+- 프로그램 내 버튼 아이콘은 멋진 무료 아이콘을 제공하는 [Feather](https://feathericons.com/)를 이용합니다.
 - 윈도우 프로그램의 아이콘은 [svgrepo](https://www.svgrepo.com/)에서 무료 아이콘을 사용했습니다.
 - 프로그램의 로딩 오버레이 아이콘은 [loading.io](https://loading.io) 에서 무료 `svg` 아이콘을 이용하고 있습니다.
 - 무료 `https` 프록시 서버 목록은 `10분`마다 갱신해서 제공하고 있는 [Zaeem20](https://github.com/Zaeem20/FREE_PROXIES_LIST/commits?author=Zaeem20) 이 제작한 [FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) 프로젝트 외 다수 사용
