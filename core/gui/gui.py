@@ -4,16 +4,16 @@ import logging
 import pickle
 import os
 import time
+import qdarktheme
 import webbrowser
 import PyQt5.sip
 from ..download.workers import FilterWorker, DownloadWorker
-from .themes import dark_theme
 from PyQt5.QtCore import Qt, QThreadPool
 from PyQt5.QtSvg import QSvgWidget
-from PyQt5.QtGui import QIcon, QStandardItemModel, QPixmap
+from PyQt5.QtGui import QIcon, QStandardItemModel, QPixmap, QFontDatabase, QFont
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QPushButton, QSpinBox, QWidget, QMessageBox,
-                             QTableView, QHeaderView, QHBoxLayout,
+                             QTableView, QHBoxLayout,
                              QPlainTextEdit, QVBoxLayout, QAbstractItemView,
                              QAbstractScrollArea, QLabel, QLineEdit,
                              QFileDialog, QProgressBar, QStackedWidget,
@@ -277,9 +277,11 @@ class GuiBehavior:
             self.gui.theme_select.setCurrentIndex(theme)
 
         if self.gui.theme_select.currentIndex() == 0:
-            self.gui.app.setPalette(self.gui.main.style().standardPalette())
+            qdarktheme.setup_theme("light")
+            # self.gui.app.setPalette(self.gui.main.style().standardPalette())
         elif self.gui.theme_select.currentIndex() == 1:
-            self.gui.app.setPalette(dark_theme)
+            qdarktheme.setup_theme("dark")
+            # self.gui.app.setPalette(dark_theme)
 
     def save_settings(self):
         with open(abs_config('app/settings'), 'wb') as f:
@@ -327,9 +329,22 @@ class Gui:
     def __init__(self):
         # Init GuiBehavior()
         self.app_name = '1Fichier 다운로더'
+        self.font = None
 
         # Create App
+        qdarktheme.enable_hi_dpi()
         app = QApplication(sys.argv)
+        qdarktheme.setup_theme("light")
+
+        font_database = QFontDatabase()
+        font_id = font_database.addApplicationFont(
+            absp("res/NanumGothic.ttf"))
+        if font_id == -1:
+            logging.debug("Font load failed!")
+        else:
+            font_families = font_database.applicationFontFamilies(font_id)
+            self.font = QFont(font_families[0], 10)
+
         app.setWindowIcon(QIcon(absp('res/ico.ico')))
         app.setStyle('Fusion')
         self.app = app
@@ -365,17 +380,20 @@ class Gui:
         download_clipboard_btn = QPushButton(
             QIcon(absp('res/clipboard.svg')), ' 클립보드에서 추가')
         download_clipboard_btn.clicked.connect(self.add_links_clipboard)
+        download_clipboard_btn.setFont(self.font)
 
         # Top Buttons
         download_btn = QPushButton(
             QIcon(absp('res/download.svg')), ' 다운로드 주소 추가')
         download_btn.clicked.connect(lambda: self.add_links.show(
         ) if not self.add_links.isVisible() else self.add_links.raise_())
+        download_btn.setFont(self.font)
 
         settings_btn = QPushButton(
             QIcon(absp('res/settings.svg')), ' 설정')
         settings_btn.clicked.connect(lambda: self.settings.show(
         ) if not self.settings.isVisible() else self.settings.raise_())
+        settings_btn.setFont(self.font)
 
         # Table
         self.table = QTableView()
@@ -387,6 +405,8 @@ class Gui:
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSortingEnabled(True)
         self.table.verticalHeader().hide()
+        if self.font:
+            self.table.setFont(self.font)
 
         self.table_model = QStandardItemModel()
         self.table_model.setHorizontalHeaderLabels(headers)
@@ -404,10 +424,14 @@ class Gui:
         # Bottom Buttons
         self.main.resume_btn = QPushButton(
             QIcon(absp('res/resume.svg')), ' 선택항목 시작')
+        self.main.resume_btn.setFont(self.font)
         self.main.pause_btn = QPushButton(
             QIcon(absp('res/pause.svg')), ' 선택항목 일시정지')
+        self.main.pause_btn.setFont(self.font)
         self.main.stop_btn = QPushButton(
             QIcon(absp('res/stop.svg')), ' 목록에서 제거')
+        self.main.stop_btn.setFont(self.font)
+
         hbox.addWidget(self.main.resume_btn)
         hbox.addWidget(self.main.pause_btn)
         hbox.addWidget(self.main.stop_btn)
@@ -417,7 +441,7 @@ class Gui:
 
         grid.addLayout(hbox, 2, 0, 1, 3)
         widget.setLayout(grid)
-        self.main.resize(720, 415)
+        self.main.resize(730, 415)
         # Set size policies for the table
         self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
