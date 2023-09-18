@@ -59,7 +59,7 @@
 <br/>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview2.png"></img>
+  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview2.jpg"></img>
 </p>
 
 ## 😼 주요 기능 소개
