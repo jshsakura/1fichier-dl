@@ -58,10 +58,6 @@
 <br/>
 <br/>
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview2.jpg"></img>
-</p>
-
 ## 😼 주요 기능 소개
 
 ⭐ 다운로드 `링크` 주소 입력만으로 다운로드 목록을 관리할 수 있으니 이젠 마음껏 걸어두고 주무셔도 좋습니다.
@@ -101,10 +97,6 @@ _여러분의 인생은 짧습니다. 더이상 기다리지마세요._
 <br/>
 
 ## 😻 개선된 사항
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview2.jpg"></img>
-</p>
 
 - `한국어화` 진행 및 `GUI` 아이콘 컬러의 가독성 개선
 - 프로그램이 기본으로 제공하던 `기본 프록시 목록`의 변경
