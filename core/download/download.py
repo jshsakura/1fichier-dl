@@ -22,7 +22,6 @@ def wait_for_password(worker, password=''):
                     worker.signals.update_signal.emit(
                         worker.data, update_data)
                 time.sleep(2)
-                self.gui.hide_loading_overlay()
             else:
                 return True
         if worker.stopped or worker.paused:

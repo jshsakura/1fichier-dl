@@ -83,6 +83,7 @@ class FilterWorker(QRunnable):
                     if f['password'] == 1:
                         password = QStandardItem(self.password)
                         row.append(password)
+                        self.gui.hide_loading_overlay()
                     else:
                         no_password = QStandardItem('비밀번호 없음')
                         no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
@@ -108,6 +109,7 @@ class FilterWorker(QRunnable):
                     if is_private:
                         password = QStandardItem(self.password)
                         row.append(password)
+                        self.gui.hide_loading_overlay()
                     else:
                         no_password = QStandardItem('비밀번호 없음')
                         no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)

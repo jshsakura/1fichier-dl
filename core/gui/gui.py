@@ -450,7 +450,7 @@ class Gui:
         self.main.loading_overlay.setGeometry(
             0, 0, self.main.width(), self.main.height())
         self.main.loading_overlay.setStyleSheet(
-            "background-color: rgba(255, 255, 255, 0.6);")
+            "background-color: rgba(255, 255, 255, 0);")
         self.main.loading_overlay.setVisible(False)
 
         # SVG 이미지를 로딩 오버레이 위젯에 추가
