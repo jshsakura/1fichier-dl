@@ -134,6 +134,8 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                     name = f'({i}) {name}'
 
                 name = f'{name}.unfinished' if name[-11:] != '.unfinished' else name
+                logging.debug(f'파일명: {name}')
+
                 worker.dl_name = name
 
                 if worker.stopped or worker.paused:
