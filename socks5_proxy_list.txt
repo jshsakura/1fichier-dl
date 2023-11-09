@@ -1,2 +1,1 @@
-https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt
-https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/socks5.txt
+https://raw.githubusercontent.com/casals-ar/proxy-list/main/socks5
