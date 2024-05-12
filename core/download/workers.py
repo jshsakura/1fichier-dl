@@ -57,16 +57,19 @@ class FilterWorker(QRunnable):
                         continue
 
                     # 링크 유효성 검사
-                    if is_valid_link(link):
-                        if not (link.startswith('https://') or link.startswith('http://')):
-                            link = f'https://{link}'
-                        link = link.split('&')[0]
-                        self.valid_links.append(link)
-                    else:
+                    try:
+                        if is_valid_link(link):
+                            if not (link.startswith('https://') or link.startswith('http://')):
+                                link = f'https://{link}'
+                            link = link.split('&')[0]
+                            self.valid_links.append(link)
+                        else:
+                            raise ValueError(f'Invalid link format: {link}')
+                    except ValueError as ve:
+                        logging.warning(ve)
                         self.invalid_links.append(link)
-                        self.signals.alert_signal.emit(f'입력한 다운로드 주소의 형식이 올바르지 않습니다.\n{link}')
-                        logging.warning(f"Invalid link detected: {link}")
-                        break
+                        self.signals.alert_signal.emit(f'Invalid link format: {link}')
+                        continue  # 다음 링크로 계속
                    
             if len(self.invalid_links) > 0 :
                 self.gui.hide_loading_overlay()
@@ -109,29 +112,34 @@ class FilterWorker(QRunnable):
                         else:
                             info = get_link_info(link)
                             if info is not None:
-                                is_private = True if info[0] == 'Private File' else False
-                                info[0] = self.dl_name if self.dl_name else info[0]
-                                info.extend(['대기중', None, '0 B/s', ''])
-                                row = []
-
-                                for val in info:
-                                    data = QStandardItem(val)
-                                    data.setFlags(data.flags() & ~Qt.ItemIsEditable)
-                                    row.append(data)
-
-                                if is_private:
-                                    password = QStandardItem(self.password)
-                                    row.append(password)
+                                # parsing 에러는 회피
+                                if info[0] == 'Error':
+                                    self.signals.alert_signal.emit(f'다운로드를 하기 위한 파일의 실제 정보를 가져올 수 없었습니다.\n{link}')
                                     self.gui.hide_loading_overlay()
                                 else:
-                                    no_password = QStandardItem('비밀번호 없음')
-                                    no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
-                                    row.append(no_password)
+                                    is_private = True if info[0] == 'Private File' else False
+                                    info[0] = self.dl_name if self.dl_name else info[0]
+                                    info.extend(['대기중', None, '0 B/s', ''])
+                                    row = []
 
-                                self.signals.download_signal.emit(
-                                    row, link, True, self.dl_name, self.progress)
-                                if self.cached_download:
-                                    self.cached_downloads.remove(self.cached_download)
+                                    for val in info:
+                                        data = QStandardItem(val)
+                                        data.setFlags(data.flags() & ~Qt.ItemIsEditable)
+                                        row.append(data)
+
+                                    if is_private:
+                                        password = QStandardItem(self.password)
+                                        row.append(password)
+                                        self.gui.hide_loading_overlay()
+                                    else:
+                                        no_password = QStandardItem('비밀번호 없음')
+                                        no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
+                                        row.append(no_password)
+
+                                    self.signals.download_signal.emit(
+                                        row, link, True, self.dl_name, self.progress)
+                                    if self.cached_download:
+                                        self.cached_downloads.remove(self.cached_download)
                     except Exception as e:
                         logging.error(f"Error processing link {link}: {e}")
                         continue

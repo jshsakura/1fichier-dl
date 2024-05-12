@@ -126,7 +126,7 @@ def get_link_info(url: str) -> list:
         return [name, size]
     except:
         logging.debug(__name__+' Exception')
-        return None
+        return ['Error', '- MB']
 
 
 def is_valid_link(url: str) -> bool:

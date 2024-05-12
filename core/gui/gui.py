@@ -99,7 +99,7 @@ class GuiBehavior:
         self.filter_thread = QThreadPool()
         self.download_thread = QThreadPool()
         # Limits concurrent downloads to 1.
-        self.download_thread.setMaxThreadCount(3)
+        self.download_thread.setMaxThreadCount(1)
         self.download_workers = []
         self.gui = gui
         self.handle_init()
