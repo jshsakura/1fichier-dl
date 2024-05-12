@@ -36,89 +36,109 @@ class FilterWorker(QRunnable):
     @pyqtSlot()
     def run(self):
         self.valid_links = []
+        self.invalid_links = []
 
-        if isinstance(self.links, str):
-            self.valid_links = [self.links]
-        else:
-            links = self.links.toPlainText().splitlines()
-            for link in links:
-                logging.debug('valid_links:'+str(link.strip()))
-                # 만약 단축 URL ouo_bypass인 경우 recapcha 우회
-                if 'ouo.io' in link:
-                    link = ouo_bypass(url=link)['bypassed_link']
-                    logging.debug('bypassed link: ' + str(link))
+        try:
+            if self.links.toPlainText():
+                links = self.links.toPlainText().splitlines()
+                for link in links:
+                    link = link.strip()
+                    logging.debug('Processing link: ' + str(link))
 
-                link = link.strip()
-                if is_valid_link(link):
-                    if not 'https://' in link[0:8] and not 'http://' in link[0:7]:
-                        link = f'https://{link}'
-                    if '&' in link:
+                    # ouo.io 링크 우회 시도
+                    try:
+                        if 'ouo.io' in link:
+                            bypassed = ouo_bypass(url=link)
+                            link = bypassed['bypassed_link']
+                            logging.debug('Bypassed link: ' + str(link))
+                    except Exception as e:
+                        logging.error(f"Failed to bypass ouo.io link {link}: {e}")
+                        self.invalid_links.append(link)
+                        continue
+
+                    # 링크 유효성 검사
+                    if is_valid_link(link):
+                        if not (link.startswith('https://') or link.startswith('http://')):
+                            link = f'https://{link}'
                         link = link.split('&')[0]
-                    self.valid_links.append(link)
-
-            if not self.valid_links:
-                self.signals.alert_signal.emit(
-                    '입력한 다운로드 주소의 형식이 올바르지 않습니다.')
+                        self.valid_links.append(link)
+                    else:
+                        self.invalid_links.append(link)
+                        self.signals.alert_signal.emit(f'입력한 다운로드 주소의 형식이 올바르지 않습니다.\n{link}')
+                        logging.warning(f"Invalid link detected: {link}")
+                        break
+                   
+            if len(self.invalid_links) > 0 :
                 self.gui.hide_loading_overlay()
                 # 링크 입력창 초기화
                 self.gui.add_btn.setEnabled(True)
                 self.gui.links.setEnabled(True)
                 self.gui.password.setEnabled(True)
+                # 링크 추가 문구 원복
+                self.gui.add_links_complete()
+            else :
+                for link in self.valid_links:
+                    try:
+                        if '/dir/' in link:
+                            folder = requests.get(f'{link}?json=1')
+                            folder = folder.json()
+                            for f in folder:
+                                link = f['link']
+                                info = [f['파일명'], convert_size(int(f['size']))]
+                                info.extend(['대기중', None, '0 B/s', ''])
+                                row = []
 
-        for link in self.valid_links:
-            if '/dir/' in link:
-                folder = requests.get(f'{link}?json=1')
-                folder = folder.json()
-                for f in folder:
-                    link = f['link']
-                    info = [f['파일명'], convert_size(int(f['size']))]
-                    info.extend(['대기중', None, '0 B/s', ''])
-                    row = []
+                                for val in info:
+                                    data = QStandardItem(val)
+                                    data.setFlags(data.flags() & ~Qt.ItemIsEditable)
+                                    row.append(data)
 
-                    for val in info:
-                        data = QStandardItem(val)
-                        data.setFlags(data.flags() & ~Qt.ItemIsEditable)
-                        row.append(data)
+                                if f['password'] == 1:
+                                    password = QStandardItem(self.password)
+                                    row.append(password)
+                                    self.gui.hide_loading_overlay()
+                                else:
+                                    no_password = QStandardItem('비밀번호 없음')
+                                    no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
+                                    row.append(no_password)
 
-                    if f['password'] == 1:
-                        password = QStandardItem(self.password)
-                        row.append(password)
-                        self.gui.hide_loading_overlay()
-                    else:
-                        no_password = QStandardItem('비밀번호 없음')
-                        no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
-                        row.append(no_password)
+                                self.signals.download_signal.emit(
+                                    row, link, True, self.dl_name, self.progress)
+                                if self.cached_download:
+                                    self.cached_downloads.remove(self.cached_download)
+                        else:
+                            info = get_link_info(link)
+                            if info is not None:
+                                is_private = True if info[0] == 'Private File' else False
+                                info[0] = self.dl_name if self.dl_name else info[0]
+                                info.extend(['대기중', None, '0 B/s', ''])
+                                row = []
 
-                    self.signals.download_signal.emit(
-                        row, link, True, self.dl_name, self.progress)
-                    if self.cached_download:
-                        self.cached_downloads.remove(self.cached_download)
-            else:
-                info = get_link_info(link)
-                if info is not None:
-                    is_private = True if info[0] == 'Private File' else False
-                    info[0] = self.dl_name if self.dl_name else info[0]
-                    info.extend(['대기중', None, '0 B/s', ''])
-                    row = []
+                                for val in info:
+                                    data = QStandardItem(val)
+                                    data.setFlags(data.flags() & ~Qt.ItemIsEditable)
+                                    row.append(data)
 
-                    for val in info:
-                        data = QStandardItem(val)
-                        data.setFlags(data.flags() & ~Qt.ItemIsEditable)
-                        row.append(data)
+                                if is_private:
+                                    password = QStandardItem(self.password)
+                                    row.append(password)
+                                    self.gui.hide_loading_overlay()
+                                else:
+                                    no_password = QStandardItem('비밀번호 없음')
+                                    no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
+                                    row.append(no_password)
 
-                    if is_private:
-                        password = QStandardItem(self.password)
-                        row.append(password)
-                        self.gui.hide_loading_overlay()
-                    else:
-                        no_password = QStandardItem('비밀번호 없음')
-                        no_password.setFlags(data.flags() & ~Qt.ItemIsEditable)
-                        row.append(no_password)
+                                self.signals.download_signal.emit(
+                                    row, link, True, self.dl_name, self.progress)
+                                if self.cached_download:
+                                    self.cached_downloads.remove(self.cached_download)
+                    except Exception as e:
+                        logging.error(f"Error processing link {link}: {e}")
+                        continue
+                    
+        except Exception as e:
+            logging.error(f"Unexpected error in run method: {e}")
 
-                    self.signals.download_signal.emit(
-                        row, link, True, self.dl_name, self.progress)
-                    if self.cached_download:
-                        self.cached_downloads.remove(self.cached_download)
 
 
 class DownloadWorker(QRunnable):

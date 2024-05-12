@@ -243,7 +243,7 @@ class GuiBehavior:
         self.hide_loading_overlay()
         # 링크 추가 후 버튼 재활성화
         self.gui.add_links_complete()
-
+                    
     def update_receive_signal(self, data, items):
         '''
         Update download data.
@@ -275,27 +275,56 @@ class GuiBehavior:
         '''
         if theme:
             self.gui.theme_select.setCurrentIndex(theme)
-
+            
         if self.gui.theme_select.currentIndex() == 0:
             qdarktheme.setup_theme("light")
             # self.gui.app.setPalette(self.gui.main.style().standardPalette())
         elif self.gui.theme_select.currentIndex() == 1:
             qdarktheme.setup_theme("dark")
             # self.gui.app.setPalette(dark_theme)
+            
+    def get_language(self):
+        language = os.getenv('LANGUAGE') or 'en' # 환경 변수에서 언어 가져오기
+        return language
+    
+    def set_language(self, language=None):
+        if language:
+            self.gui.theme_select.setCurrentIndex(language)
+            
+        if(self.gui.theme_select.currentIndex()) :
+            return 'kr'
+        else :
+            return 'en'
+
+    def load_messages(self, language):
+        messages = {}
+        messages_file = f'messages_{language}.txt'
+
+        with open(messages_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                key, value = line.strip().split(',')
+                messages[key] = value
+
+        return messages
 
     def save_settings(self):
         with open(abs_config('app/settings'), 'wb') as f:
             settings = []
-            settings.append(self.gui.dl_directory_input.text())
             # Download Directory - 0
+            settings.append(self.gui.dl_directory_input.text())
             # Theme              - 1
             settings.append(self.gui.theme_select.currentIndex())
-            settings.append(self.gui.timeout_input.value())
             # Timeout            - 2
+            settings.append(self.gui.timeout_input.value())
             # Proxy Settings     - 3
             settings.append(self.gui.proxy_settings_input.text())
             # 멀티 다운로드 갯수
-            settings.append(self.gui.thread_input.value())
+            # Thread Settings     - 4
+            settings.append(1)
+            # settings.append(self.gui.thread_input.value())
+            # 언어 선택
+            # Lang Settings     - 5
+            # settings.append(self.gui.lang_select.currentIndex())
             pickle.dump(settings, f)
             self.settings = settings
         self.gui.settings.hide()
@@ -328,7 +357,7 @@ class GuiBehavior:
 class Gui:
     def __init__(self):
         # Init GuiBehavior()
-        self.app_name = '1Fichier 다운로더'
+        self.app_name = '1Fichier Downloader'
         self.font = None
 
         # Create App
@@ -548,6 +577,15 @@ class Gui:
         vbox = QVBoxLayout()
         vbox.setAlignment(Qt.AlignTop)
         form_layout = QFormLayout()
+        
+        # Change Lang
+        # form_layout.addRow(QLabel('Language:'))
+
+        # self.lang_select = QComboBox()
+        # self.lang_select.addItems(['Korean', 'English'])
+        # self.lang_select.currentIndexChanged.connect(
+        #     self.actions.set_language)
+        # form_layout.addRow(self.lang_select)
 
         # Change Directory
         form_layout.addRow(QLabel('기본 다운로드 폴더:'))
@@ -611,15 +649,14 @@ class Gui:
 
         form_layout_c.addRow(self.proxy_settings_input)
 
-        # Timeout
-        form_layout_c.addRow(QLabel('동시 프록시 다운로드 갯수 (재시작 필요):'))
-        self.thread_input = QSpinBox()
-        if self.actions.settings is not None:
-            self.thread_input.setValue(self.actions.settings[4])
-        else:
-            self.thread_input.setValue(3)
+        # form_layout_c.addRow(QLabel('동시 프록시 다운로드 갯수 (재시작 필요):'))
+        # self.thread_input = QSpinBox()
+        # if self.actions.settings is not None:
+        #     self.thread_input.setValue(self.actions.settings[4])
+        # else:
+        #     self.thread_input.setValue(3)
 
-        form_layout_c.addRow(self.thread_input)
+        # form_layout_c.addRow(self.thread_input)
 
         # Bottom buttons
         save_settings_c = QPushButton('저장')
@@ -645,7 +682,7 @@ class Gui:
         logo.setPixmap(QPixmap(absp('res/ico.svg')))
         logo.setAlignment(Qt.AlignCenter)
 
-        text = QLabel(self.app_name+' (한글)')
+        text = QLabel(self.app_name+' (KR)')
         text.setStyleSheet('font-weight: bold; color: #4256AD')
 
         github_btn = QPushButton(QIcon(absp('res/github.svg')), '')
@@ -668,17 +705,24 @@ class Gui:
         self.links.clear()
 
     def add_to_download_list(self):
-        # '다운로드 목록에 추가' 버튼을 비활성화합니다.
-        self.add_btn.setText("다운로드 목록에 추가 중...")
-        self.add_btn.setEnabled(False)
-
         # 입력된 링크를 가져와서 리스트로 변환합니다.
         links_text = self.links.toPlainText()
-        download_links = links_text.split('\n')
-        self.links.setDisabled(True)
-        self.password.setDisabled(True)
+        
+        if(links_text) :
+            add_links_texts = []
+            # '다운로드 목록에 추가' 버튼을 비활성화합니다.
+            self.add_btn.setText("다운로드 목록에 추가 중...")
+            self.add_btn.setEnabled(False)
 
-        for link in download_links:
-            if link.strip():  # 빈 줄이 아닌 경우에만 추가합니다.
-                # 'add_links'를 사용, 다운로드 링크를 추가합니다.
-                self.actions.add_links(link)
+            download_links = links_text.split('\n')
+            self.links.setDisabled(True)
+            self.password.setDisabled(True)
+
+            for link in download_links:
+                if link.strip():  # 빈 줄이 아닌 경우에만 추가합니다.
+                    add_links_texts.append(link)
+                    
+            # 'add_links'를 사용, 다운로드 링크를 추가합니다.
+            self.actions.add_links('\n'.join(add_links_texts))
+        else:
+            alert('다운로드 링크 목록을 입력해주세요.')
