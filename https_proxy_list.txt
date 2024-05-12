@@ -1,4 +1,5 @@
+https://raw.githubusercontent.com/r00tee/Proxy-List/main/Https.txt
+https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks5.txt
 https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt
-https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt
+https://raw.githubusercontent.com/SevenworksDev/proxy-list/main/proxies/https.txt
 https://raw.githubusercontent.com/ErcinDedeoglu/proxies/main/proxies/https.txt
-https://raw.githubusercontent.com/casals-ar/proxy.casals.ar/main/https
