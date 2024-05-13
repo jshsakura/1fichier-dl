@@ -48,15 +48,6 @@
 </p>
 <br/>
 <br/>
-<p align="center">
-  <img src="https://raw.githubusercontent.com/jshsakura/1fichier-dl/main/screenshots/preview_settings1.png"></img>
-</p>
-
-<p align="center">
-  <b>여러개의 동시 다운로드를 지원하고 환경에 따라 늘리거나 줄일 수 있습니다.</b>
-</p>
-<br/>
-<br/>
 
 ## 😼 주요 기능 소개
 
