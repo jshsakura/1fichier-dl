@@ -5,6 +5,7 @@ import logging
 import threading
 from .download import *
 from PyQt5.QtCore import Qt, QObject, QRunnable, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QPlainTextEdit
 from PyQt5.QtGui import QStandardItem
 from .helpers import is_valid_link
 from .recapcha import *
@@ -23,7 +24,7 @@ class WorkerSignals(QObject):
 class FilterWorker(QRunnable):
     def __init__(self, actions, cached_download='', password=''):
         super(FilterWorker, self).__init__()
-        self.links = actions.gui.links
+        self.links = actions.gui.links  # QPlainTextEdit 객체여야 함
         self.gui = actions.gui
         self.cached_downloads = actions.cached_downloads
         self.cached_download = cached_download
@@ -39,37 +40,44 @@ class FilterWorker(QRunnable):
         self.invalid_links = []
 
         try:
-            if self.links.toPlainText():
+            # self.links가 QPlainTextEdit인 경우와 문자열인 경우 모두 처리
+            if isinstance(self.links, QPlainTextEdit):
                 links = self.links.toPlainText().splitlines()
-                for link in links:
-                    link = link.strip()
-                    logging.debug('Processing link: ' + str(link))
+            elif isinstance(self.links, str):
+                links = self.links.splitlines()
+            else:
+                logging.error("Unexpected type for self.links: " + str(type(self.links)))
+                return
+            
+            for link in links:
+                link = link.strip()
+                logging.debug('Processing link: ' + str(link))
 
-                    # ouo.io 링크 우회 시도
-                    try:
-                        if 'ouo.io' in link:
-                            bypassed = ouo_bypass(url=link)
-                            link = bypassed['bypassed_link']
-                            logging.debug('Bypassed link: ' + str(link))
-                    except Exception as e:
-                        logging.error(f"Failed to bypass ouo.io link {link}: {e}")
-                        self.invalid_links.append(link)
-                        continue
+                # ouo.io 링크 우회 시도
+                try:
+                    if 'ouo.io' in link:
+                        bypassed = ouo_bypass(url=link)
+                        link = bypassed['bypassed_link']
+                        logging.debug('Bypassed link: ' + str(link))
+                except Exception as e:
+                    logging.error(f"Failed to bypass ouo.io link {link}: {e}")
+                    self.invalid_links.append(link)
+                    continue
 
-                    # 링크 유효성 검사
-                    try:
-                        if is_valid_link(link):
-                            if not (link.startswith('https://') or link.startswith('http://')):
-                                link = f'https://{link}'
-                            link = link.split('&')[0]
-                            self.valid_links.append(link)
-                        else:
-                            raise ValueError(f'Invalid link format: {link}')
-                    except ValueError as ve:
-                        logging.warning(ve)
-                        self.invalid_links.append(link)
-                        self.signals.alert_signal.emit(f'Invalid link format: {link}')
-                        continue  # 다음 링크로 계속
+                # 링크 유효성 검사
+                try:
+                    if is_valid_link(link):
+                        if not (link.startswith('https://') or link.startswith('http://')):
+                            link = f'https://{link}'
+                        link = link.split('&')[0]
+                        self.valid_links.append(link)
+                    else:
+                        raise ValueError(f'Invalid link format: {link}')
+                except ValueError as ve:
+                    logging.warning(ve)
+                    self.invalid_links.append(link)
+                    self.signals.alert_signal.emit(f'Invalid link format: {link}')
+                    continue  # 다음 링크로 계속
                    
             if len(self.invalid_links) > 0 :
                 self.gui.hide_loading_overlay()
@@ -146,6 +154,8 @@ class FilterWorker(QRunnable):
                     
         except Exception as e:
             logging.error(f"Unexpected error in run method: {e}")
+            # 예외 상황 후에도 로딩 화면 종료
+            self.gui.hide_loading_overlay()
 
 
 
@@ -162,32 +172,28 @@ class DownloadWorker(QRunnable):
 
         # Default settings
         self.timeout = 30
+        self.proxy_settings = None  # 기본값 설정
 
-        # 사용자의 다운로드 폴더 경로 설정
+        # 사용자 다운로드 폴더 경로 설정
         user_home_directory = os.path.expanduser("~")
         self.dl_directory = os.path.join(user_home_directory, "Downloads")
-        # 아래는 프로그램 실행 경로
-        # self.dl_directory = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(download_folder)))
 
-        # Proxies Settings
-        self.proxy_settings = None
-
-        # Override defaults
+        # Override defaults from settings
         if settings:
             if settings[0]:
                 self.dl_directory = settings[0]
             if settings[2]:
                 self.timeout = settings[2]
-            if settings[3]:
-                self.proxy_settings = settings[3]
+            if settings[3] is not None:
+                self.proxy_settings = settings[3]  # proxy_settings 초기화
 
+        # Proxies 설정
         if proxy_queue.qsize() == 0:
-            # 큐가 비어있을 때만 프록시 로드
-            time.sleep(3)
             self.load_proxies()
 
         # Proxies
         self.proxies = proxy_queue
+        
 
     def load_proxies(self):
         global proxy_queue
@@ -200,26 +206,25 @@ class DownloadWorker(QRunnable):
         download_thread = threading.Thread(target=self.download)
         download_thread.start()
 
+    # QRunnable의 run 메서드 사용
     @pyqtSlot()
     def run(self):
-        dl_name = download(self)
-        self.dl_name = dl_name
+        try:
+            dl_name = download(self)
+            self.dl_name = dl_name
 
-        if dl_name and self.stopped:
-            logging.debug('Stop Download')
-            if (dl_name):
-                try:
+            if dl_name and self.stopped:
+                logging.debug('Stop Download')
+                if dl_name:
                     os.remove(self.dl_directory + '/' + str(dl_name))
-                    logging.debug(
-                        f'Temp File Remove: {self.dl_directory}/{dl_name}')
-                except:
-                    logging.debug(
-                        f'Failed to remove: {self.dl_directory}/{dl_name}')
+                    logging.debug(f'Temp File Remove: {self.dl_directory}/{dl_name}')
 
-        if not self.paused:
-            logging.debug('Remove Download')
-            if not dl_name:
-                self.complete = True
+            if not self.paused:
+                logging.debug('Remove Download')
+                if not dl_name:
+                    self.complete = True
+        except Exception as e:
+            logging.error(f"Error during download: {e}")
 
     def stop(self, i):
         self.table_model.removeRow(i)

@@ -13,7 +13,7 @@ from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtGui import QIcon, QStandardItemModel, QPixmap, QFontDatabase, QFont
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QGridLayout,
                              QPushButton, QSpinBox, QWidget, QMessageBox,
-                             QTableView, QHBoxLayout,
+                             QTableView, QHBoxLayout, QHeaderView,
                              QPlainTextEdit, QVBoxLayout, QAbstractItemView,
                              QAbstractScrollArea, QLabel, QLineEdit,
                              QFileDialog, QProgressBar, QStackedWidget,
@@ -77,14 +77,16 @@ def check_selection(table):
 
 def create_file(f):
     '''
-    Create empty file.
-    [note] Used to create app/settings and app/cache.
+    Create empty file if it does not exist.
     '''
     f = abs_config(f)
-    logging.debug(f'Attempting to create file: {f}...')
-    os.makedirs(os.path.dirname(f), exist_ok=True)
-    f = open(f, 'x')
-    f.close()
+    if not os.path.exists(f):
+        logging.debug(f'Attempting to create file: {f}...')
+        os.makedirs(os.path.dirname(f), exist_ok=True)
+        with open(f, 'x') as file:
+            pass  # 빈 파일 생성
+    else:
+        logging.debug(f'File already exists: {f}')
 
 
 def getClipboardText():
@@ -130,21 +132,17 @@ class GuiBehavior:
         try:
             with open(abs_config('app/settings'), 'rb') as f:
                 self.settings = pickle.load(f)
+                # 정상 로드된 경우 스레드 카운트를 설정
                 thread_count = self.settings[4]
                 self.download_thread.setMaxThreadCount(int(thread_count))
-                logging.debug('Now Settings Thread Count:'+str(thread_count))
-        except EOFError:
-            self.settings = None
-            logging.debug('No settings found.')
-        except FileNotFoundError:
-            self.settings = None
-            logging.debug('Create New settings File.')
+                logging.debug('Loaded settings thread count:' + str(thread_count))
+        except (FileNotFoundError, EOFError):
+            # 파일이 없거나 비어 있을 경우 기본 설정을 사용
+            self.settings = [None, 0, 30, '', 1]  # 기본 설정값으로 초기화
+            logging.debug('Creating new settings file with default values.')
             create_file('app/settings')
-        except IndexError:
-            # settings 리스트의 네 번째 요소가 없을 때 기본값 3 사용
-            self.settings = None
-            thread_count = 3
-            self.download_thread.setMaxThreadCount(thread_count)
+            with open(abs_config('app/settings'), 'wb') as f:
+                pickle.dump(self.settings, f)
 
     def show_loading_overlay(self):
         '''
@@ -320,8 +318,10 @@ class GuiBehavior:
             settings.append(self.gui.proxy_settings_input.text())
             # 멀티 다운로드 갯수
             # Thread Settings     - 4
-            settings.append(1)
-            # settings.append(self.gui.thread_input.value())
+            try:
+                settings.append(self.gui.thread_input.value())
+            except AttributeError:
+                settings.append(1)
             # 언어 선택
             # Lang Settings     - 5
             # settings.append(self.gui.lang_select.currentIndex())
@@ -425,21 +425,34 @@ class Gui:
         settings_btn.setFont(self.font)
 
         # Table
+        # Table 초기화 코드
+        # Table 초기화 코드
         self.table = QTableView()
-        headers = ['파일명', '크기', '상태', '프록시 서버',
-                   '전송 속도', '진행률', '비밀번호']
-        self.table.setSizeAdjustPolicy(
-            QAbstractScrollArea.AdjustToContentsOnFirstShow)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        headers = ['파일명', '크기', '상태', '프록시 서버', '전송 속도', '진행률', '비밀번호']
+        self.table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContentsOnFirstShow)
+        self.table.horizontalHeader().setStretchLastSection(True)  # 마지막 열 확장 비활성화
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSortingEnabled(True)
         self.table.verticalHeader().hide()
+
         if self.font:
             self.table.setFont(self.font)
 
         self.table_model = QStandardItemModel()
         self.table_model.setHorizontalHeaderLabels(headers)
         self.table.setModel(self.table_model)
+
+        # 열 크기 조정 모드 설정
+        header = self.table.horizontalHeader()
+
+        # 특정 열 고정 크기
+        header.setSectionResizeMode(3, QHeaderView.Fixed)  # '파일명' 열 고정
+        header.resizeSection(3, 250)  # '프록시 서버' 열
+
+        # 레이아웃 업데이트 강제 트리거
+        self.table.horizontalHeader().resizeSections(QHeaderView.Fixed)
+        self.table.viewport().update()
+        self.table.update()
 
         # Append widgets to grid
         grid.addWidget(download_clipboard_btn, 0, 0)
@@ -470,7 +483,7 @@ class Gui:
 
         grid.addLayout(hbox, 2, 0, 1, 3)
         widget.setLayout(grid)
-        self.main.resize(730, 415)
+        self.main.resize(880, 415)
         # Set size policies for the table
         self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -649,14 +662,14 @@ class Gui:
 
         form_layout_c.addRow(self.proxy_settings_input)
 
-        # form_layout_c.addRow(QLabel('동시 프록시 다운로드 갯수 (재시작 필요):'))
-        # self.thread_input = QSpinBox()
-        # if self.actions.settings is not None:
-        #     self.thread_input.setValue(self.actions.settings[4])
-        # else:
-        #     self.thread_input.setValue(3)
+        form_layout_c.addRow(QLabel('동시 다운로드 개수 (재시작 필요):'))
+        self.thread_input = QSpinBox()
+        if self.actions.settings is not None:
+            self.thread_input.setValue(self.actions.settings[4])
+        else:
+            self.thread_input.setValue(3)
 
-        # form_layout_c.addRow(self.thread_input)
+        form_layout_c.addRow(self.thread_input)
 
         # Bottom buttons
         save_settings_c = QPushButton('저장')
@@ -706,7 +719,10 @@ class Gui:
 
     def add_to_download_list(self):
         # 입력된 링크를 가져와서 리스트로 변환합니다.
-        links_text = self.links.toPlainText()
+        if isinstance(self.links, QPlainTextEdit):
+            links_text = self.links.toPlainText()
+        else:
+            links_text = self.links  # 이미 문자열인 경우
         
         if(links_text) :
             add_links_texts = []
