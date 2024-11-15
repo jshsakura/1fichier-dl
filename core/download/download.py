@@ -173,7 +173,7 @@ def download(worker, payload={'dl_no_ssl': 'on', 'dlinline': 'on'}, downloaded_s
                 os.rename(worker.dl_directory + '/' + name,
                           worker.dl_directory + '/' + name[:-11])
 
-                update_data = [None, None, '다운로드 완료', None]
+                update_data = [None, None, '다운로드 완료', '']
                 if isinstance(worker.data, list):
                     worker.signals.update_signal.emit(
                         worker.data, update_data)

@@ -169,6 +169,7 @@ class DownloadWorker(QRunnable):
         self.signals = WorkerSignals()
         self.paused = self.stopped = self.complete = False
         self.dl_name = dl_name
+        self.stop_requested = False  # 종료 요청 플래그 추가
 
         # Default settings
         self.timeout = 30
@@ -206,23 +207,30 @@ class DownloadWorker(QRunnable):
         download_thread = threading.Thread(target=self.download)
         download_thread.start()
 
+    def stop(self):
+        self.stop_requested = True
+        
     # QRunnable의 run 메서드 사용
     @pyqtSlot()
     def run(self):
         try:
-            dl_name = download(self)
-            self.dl_name = dl_name
+            # stop_requested 플래그 확인하며 다운로드 실행
+            while not self.stop_requested:
+                dl_name = download(self)
+                self.dl_name = dl_name
 
-            if dl_name and self.stopped:
-                logging.debug('Stop Download')
-                if dl_name:
-                    os.remove(self.dl_directory + '/' + str(dl_name))
-                    logging.debug(f'Temp File Remove: {self.dl_directory}/{dl_name}')
+                if dl_name and self.stop_requested:
+                    logging.debug('Stop Download')
+                    if dl_name:
+                        os.remove(self.dl_directory + '/' + str(dl_name))
+                        logging.debug(f'Temp File Remove: {self.dl_directory}/{dl_name}')
+                    break
 
-            if not self.paused:
-                logging.debug('Remove Download')
-                if not dl_name:
-                    self.complete = True
+                if not self.paused:
+                    logging.debug('Remove Download')
+                    if not dl_name:
+                        self.complete = True
+                    break
         except Exception as e:
             logging.error(f"Error during download: {e}")
 

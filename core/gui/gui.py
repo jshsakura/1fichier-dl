@@ -335,23 +335,34 @@ class GuiBehavior:
         '''
         selection = self.gui.settings_list.selectedIndexes()[0].row()
         self.gui.stacked_settings.setCurrentIndex(selection)
+    
+    def stop_all_threads(self):
+        """모든 다운로드 스레드를 중단하고 스레드 풀을 정리"""
+        for worker in self.download_workers:
+            worker.stop()  # 각 다운로드 스레드의 stop() 호출로 종료 요청
+            
+        # QThreadPool의 스레드가 완료되기를 1초 기다린 후 남은 작업 정리
+        if not self.download_thread.waitForDone(1000):  # 1000ms (1초) 대기
+            logging.debug("Not all threads completed within 1 second. Forcing cleanup.")
+        self.download_thread.clear()
 
     def handle_exit(self):
-        '''
-        Save cached downloads data.
-        '''
-        active_downloads = []
-        for w in self.download_workers:
-            download = w.return_data()
-            if download:
-                active_downloads.append(download)
-        active_downloads.extend(self.cached_downloads)
-
-        with open(abs_config('app/cache'), 'wb') as f:
-            if active_downloads:
+        """프로그램 종료 시 캐시를 저장하고 모든 스레드를 종료"""
+        # 모든 스레드 중지 및 캐시 저장 절차
+        self.stop_all_threads()
+        
+        # 종료 직전 활성화된 다운로드 작업을 저장
+        active_downloads = [w.return_data() for w in self.download_workers if w.return_data()]
+        if active_downloads:
+            active_downloads.extend(self.cached_downloads)
+            with open(abs_config('app/cache'), 'wb') as f:
                 pickle.dump(active_downloads, f)
-
-        os._exit(1)
+                
+        # 안전한 종료 수행
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)  # 모든 종료 절차 후에도 잔여 스레드가 있는 경우 강제 종료
 
 
 class Gui:
@@ -381,7 +392,6 @@ class Gui:
         # Initialize self.main
         self.main_init()
         self.actions = GuiBehavior(self)
-        app.aboutToQuit.connect(self.actions.handle_exit)
 
         # Create Windows
         self.main_win()
@@ -446,11 +456,17 @@ class Gui:
         header = self.table.horizontalHeader()
 
         # 특정 열 고정 크기
-        header.setSectionResizeMode(3, QHeaderView.Fixed)  # '파일명' 열 고정
-        header.resizeSection(3, 250)  # '프록시 서버' 열
+        header.setSectionResizeMode(1, QHeaderView.Interactive)  # '파일명' 열 고정
+        header.setSectionResizeMode(3, QHeaderView.Interactive)  # '프록시 서버' 열 고정
+        header.setSectionResizeMode(4, QHeaderView.Interactive)  # '속도' 열 고정
+        header.setSectionResizeMode(5, QHeaderView.Interactive)  # '진행률' 열 고정
+        header.resizeSection(0, 250)
+        header.resizeSection(3, 250)
+        header.resizeSection(4, 60)
+        header.resizeSection(5, 60)
 
         # 레이아웃 업데이트 강제 트리거
-        self.table.horizontalHeader().resizeSections(QHeaderView.Fixed)
+        self.table.horizontalHeader().resizeSections(QHeaderView.Interactive)
         self.table.viewport().update()
         self.table.update()
 
@@ -483,7 +499,7 @@ class Gui:
 
         grid.addLayout(hbox, 2, 0, 1, 3)
         widget.setLayout(grid)
-        self.main.resize(880, 415)
+        self.main.resize(950, 450)
         # Set size policies for the table
         self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
