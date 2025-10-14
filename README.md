@@ -1,3 +1,11 @@
+## ⚠️ This Project Has Been Archived ⚠️
+
+This repository is no longer in active development. All future updates and discussions have been moved to the successor project.
+
+**Please visit the new repository here:**
+### **➡️ [oc-proxy-downloader](https://github.com/jshsakura/oc-proxy-downloader)**
+
+
 **🧙‍♂️ 1Fichier-dl 프로젝트.**
 
 현재 더 이상 유지보수 되고 있지 않은 **1Fichier-dl** 프로젝트의 한국어 사용자용 포크 버전입니다.
@@ -7,6 +15,7 @@
 <p align="left">
   <img src="https://github.com/jshsakura/1fichier-dl/blob/main/screenshots/ico.png?raw=true"></img>
 </p>
+
 
 # 😺 1Fichier 다운로더 한국어화
 
